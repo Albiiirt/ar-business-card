@@ -4,49 +4,44 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
   <title>Albert Canades — AR</title>
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe@1.4.0/dist/aframe.min.js"></script>
+  <script src="aframe-ar.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
-
-    #ui {
-      position: fixed; top: 0; left: 0; right: 0;
-      pointer-events: none; z-index: 999;
-      display: flex; flex-direction: column; align-items: center;
-      padding-top: 20px; gap: 8px;
+    * { margin: 0; padding: 0; }
+    body { overflow: hidden; background: #000; }
+    #info {
+      position: fixed; top: 16px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.75);
+      color: #08d9d6;
+      padding: 10px 22px;
+      border-radius: 20px;
+      font: 13px/1 'Courier New', monospace;
+      z-index: 9999;
+      text-align: center;
+      pointer-events: none;
+      white-space: nowrap;
     }
-    .pill {
-      background: rgba(10,10,20,0.85);
-      padding: 9px 20px; border-radius: 20px;
-      font-size: 13px; letter-spacing: 0.04em;
-      border: 1px solid rgba(255,255,255,0.1);
-      transition: opacity 0.3s;
-    }
-    #hint  { color: #08d9d6; }
-    #found { color: #4ade80; opacity: 0; }
-    #found.on { opacity: 1; }
   </style>
 </head>
 <body>
-  <div id="ui">
-    <div class="pill" id="hint">✦ Apunta la càmera al marcador Hiro</div>
-    <div class="pill" id="found">▲ Albert Canades · AI Developer</div>
-  </div>
+  <div id="info">✦ Apunta la càmera al marcador Hiro</div>
 
   <a-scene
     embedded
-    arjs="sourceType: webcam; debugUIEnabled: false; patternRatio: 0.75;"
+    arjs="sourceType: webcam; debugUIEnabled: false;"
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
+    renderer="logarithmicDepthBuffer: true;"
   >
     <a-marker preset="hiro" id="mk">
       <a-plane
         id="pp"
         position="0 0.01 0"
         rotation="-90 0 0"
-        width="1.8" height="1.8"
-        material="shader: flat; transparent: true; alphaTest: 0.01;"
+        width="1.8"
+        height="1.8"
+        material="shader: flat; transparent: true;"
         pixel-art
       ></a-plane>
     </a-marker>
@@ -54,72 +49,90 @@
   </a-scene>
 
   <script>
-    const PALETTE = [
-      null, '#0d0d1a', '#1e3a5f', '#334155', '#2d1b4e',
+    /* ── Paleta de colors ── */
+    const P = [
+      null,
+      '#0d0d1a', '#1e3a5f', '#334155', '#2d1b4e',
       '#e94560', '#08d9d6', '#ffffff', '#f5c5a3', '#1a0a2e',
       '#4a6fa5', '#7dd3fc', '#f0abfc', '#4ade80', '#fbbf24', '#94a3b8'
     ];
 
-    const FRAMES = [[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]];
+    /* ── Frames de pixel art (16×18) ── */
+    const F = [
+      // frame 0 – mans a l'escriptori, pantalla cyan/verd
+      [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
+      // frame 1 – mans exteses, pantalla desplaçada
+      [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
+      // frame 2 – pantalla rosa/vermella (compila)
+      [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
+      // frame 3 – pantalla verd brillant
+      [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
+    ];
 
-    // Component that creates its own canvas texture via Three.js directly
+    /* ── Component A-Frame que crea textura Three.js directament ── */
     AFRAME.registerComponent('pixel-art', {
       init: function () {
-        const canvas = document.createElement('canvas');
-        canvas.width = 320; canvas.height = 320;
-        this.ctx = canvas.getContext('2d');
-        this.texture = new THREE.CanvasTexture(canvas);
-        this.texture.minFilter = THREE.NearestFilter;
-        this.texture.magFilter = THREE.NearestFilter;
-        this.fi = 0;
+        this.canvas  = document.createElement('canvas');
+        this.canvas.width  = 256;
+        this.canvas.height = 256;
+        this.ctx     = this.canvas.getContext('2d');
+        this.tex     = new THREE.CanvasTexture(this.canvas);
+        this.tex.minFilter = THREE.NearestFilter;
+        this.tex.magFilter = THREE.NearestFilter;
+        this.fi      = 0;
 
-        this.el.addEventListener('loaded', () => {
+        // Dibuixar primer frame immediatament
+        this.draw(F[0]);
+
+        // Esperar que la malla d'A-Frame existeixi, llavors injectar textura
+        const apply = () => {
           const mesh = this.el.getObject3D('mesh');
-          if (mesh) {
-            mesh.material.map = this.texture;
-            mesh.material.transparent = true;
-            mesh.material.depthWrite = false;
-            mesh.material.needsUpdate = true;
-          }
-        });
+          if (!mesh) { setTimeout(apply, 50); return; }
+          mesh.material.map         = this.tex;
+          mesh.material.transparent = true;
+          mesh.material.needsUpdate = true;
+        };
+        apply();
 
-        this.drawFrame(FRAMES[0]);
+        // Animació
         setInterval(() => {
-          this.fi = (this.fi + 1) % FRAMES.length;
-          this.drawFrame(FRAMES[this.fi]);
-          this.texture.needsUpdate = true;
-        }, 380);
+          this.fi = (this.fi + 1) % F.length;
+          this.draw(F[this.fi]);
+          this.tex.needsUpdate = true;
+        }, 400);
       },
 
-      drawFrame: function (f) {
+      draw: function (frame) {
         const ctx = this.ctx;
-        const PS = 17, OX = 24, OY = 6;
-        ctx.clearRect(0, 0, 320, 320);
-        for (let r = 0; r < f.length; r++) {
-          for (let c = 0; c < f[r].length; c++) {
-            const ci = f[r][c];
+        const PS = 14, OX = 16, OY = 4;
+        ctx.clearRect(0, 0, 256, 256);
+        for (let r = 0; r < frame.length; r++) {
+          for (let c = 0; c < frame[r].length; c++) {
+            const ci = frame[r][c];
             if (!ci) continue;
-            ctx.fillStyle = PALETTE[ci];
+            ctx.fillStyle = P[ci];
             ctx.fillRect(OX + c * PS, OY + r * PS, PS - 1, PS - 1);
           }
         }
-        ctx.fillStyle = 'rgba(13,13,26,0.88)';
-        ctx.fillRect(20, 295, 280, 22);
+        // Nom a baix
+        ctx.fillStyle = 'rgba(13,13,26,0.9)';
+        ctx.fillRect(10, 232, 236, 22);
         ctx.fillStyle = '#08d9d6';
-        ctx.font = 'bold 11px monospace';
+        ctx.font = 'bold 10px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('ALBERT CANADES · AI Developer', 160, 310);
+        ctx.fillText('ALBERT CANADES · AI Dev', 128, 247);
       }
     });
 
-    // UI feedback
+    /* ── Feedback UI ── */
+    const info = document.getElementById('info');
     document.getElementById('mk').addEventListener('markerFound', () => {
-      document.getElementById('hint').style.opacity  = '0';
-      document.getElementById('found').classList.add('on');
+      info.style.color = '#4ade80';
+      info.textContent = '▲ Albert Canades · AI Developer';
     });
     document.getElementById('mk').addEventListener('markerLost', () => {
-      document.getElementById('hint').style.opacity  = '1';
-      document.getElementById('found').classList.remove('on');
+      info.style.color = '#08d9d6';
+      info.textContent = '✦ Apunta la càmera al marcador Hiro';
     });
   </script>
 </body>
