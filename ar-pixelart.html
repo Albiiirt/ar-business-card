@@ -20,18 +20,20 @@
     }
 
     #controls {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      padding: 10px 16px; background: rgba(0,0,0,0.65);
-      display: flex; align-items: center; gap: 12px;
-      z-index: 10; font: 12px 'Courier New', monospace; color: #ccc;
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.55); border-radius: 8px;
+      padding: 10px 16px; min-width: 240px;
+      display: flex; flex-direction: column; gap: 6px;
+      z-index: 10; font-family: monospace; font-size: 12px; color: #ccc;
     }
-    #controls label { white-space: nowrap; }
-    #pixel-slider { flex: 1; accent-color: #08d9d6; cursor: pointer; }
+    .ctrl-row { display: flex; align-items: center; gap: 8px; }
+    .ctrl-row label { white-space: nowrap; min-width: 90px; }
+    .ctrl-row input[type="range"] { flex: 1; accent-color: #08d9d6; cursor: pointer; }
     #cam-toggle {
       background: #08d9d6; color: #000; border: none;
       padding: 6px 12px; border-radius: 4px;
-      font: bold 11px 'Courier New', monospace;
-      cursor: pointer; white-space: nowrap;
+      font: bold 11px monospace; cursor: pointer;
+      align-self: center; margin-top: 2px;
     }
   </style>
 </head>
@@ -42,8 +44,18 @@
   <div id="hint">Tap to reposition · drag slider to scale</div>
 
   <div id="controls">
-    <label>Pixel: <strong id="px-val">6</strong></label>
-    <input id="pixel-slider" type="range" min="2" max="14" value="6">
+    <div class="ctrl-row">
+      <label>Pixel: <strong id="px-val">6</strong></label>
+      <input id="pixel-slider" type="range" min="2" max="14" value="6">
+    </div>
+    <div class="ctrl-row">
+      <label>X: <strong id="ox-val">0</strong></label>
+      <input id="ox-slider" type="range" min="-200" max="200" value="0">
+    </div>
+    <div class="ctrl-row">
+      <label>Y: <strong id="oy-val">0</strong></label>
+      <input id="oy-slider" type="range" min="-200" max="200" value="0">
+    </div>
     <button id="cam-toggle">Hide cam</button>
   </div>
 
@@ -68,11 +80,12 @@
     // ── Scene state ───────────────────────────────────────────────────
     let BASE_PIXEL = 6;
     let originX = 0, originY = 0;
+    let offsetX = 0, offsetY = 0;
     let showCamera = true;
 
     function resetOrigin() {
-      originX = W * 0.5;
-      originY = H * 0.42;
+      originX = W * 0.5 + offsetX;
+      originY = H * 0.42 + offsetY;
     }
     resetOrigin();
 
@@ -311,14 +324,39 @@
       drawIsoBlock(ctx, dx, dy, dz, dw, dh, dd, '#8B5E3C', '#6B4423', '#5A3818');
     }
 
-    // Warm radial light spill from window — drawn last, over everything
-    function drawWindowLight(ctx) {
-      const c = toScreen(0, wy=4, wz=4.5);
-      const r = BASE_PIXEL * 22;
-      const grd = ctx.createRadialGradient(c.x, c.y, BASE_PIXEL * 2, c.x, c.y, r);
-      grd.addColorStop(0, 'rgba(255,220,150,0.12)');
-      grd.addColorStop(1, 'rgba(255,220,150,0)');
-      ctx.fillStyle = grd;
+    // Floor shadows — drawn first, under all objects
+    function drawFloorShadows(ctx) {
+      ctx.fillStyle = 'rgba(0,0,0,0.12)';
+
+      const dp = toScreen(4, 0, 4);
+      ctx.beginPath();
+      ctx.ellipse(dp.x, dp.y, BASE_PIXEL * 16, BASE_PIXEL * 6, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      const cp = toScreen(3.75, 0, 2.25);
+      ctx.beginPath();
+      ctx.ellipse(cp.x, cp.y, BASE_PIXEL * 10, BASE_PIXEL * 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      const pp = toScreen(1.5, 0, 2.5);
+      ctx.beginPath();
+      ctx.ellipse(pp.x, pp.y, BASE_PIXEL * 8, BASE_PIXEL * 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Ambient lighting overlays — drawn last, over everything
+    function drawAmbientLight(ctx) {
+      const winPos = toScreen(0, 4, 4.5);
+      const warmGrad = ctx.createRadialGradient(winPos.x, winPos.y, 0, winPos.x, winPos.y, W * 0.6);
+      warmGrad.addColorStop(0, 'rgba(255,220,120,0.12)');
+      warmGrad.addColorStop(1, 'rgba(255,220,120,0)');
+      ctx.fillStyle = warmGrad;
+      ctx.fillRect(0, 0, W, H);
+
+      const coolGrad = ctx.createRadialGradient(W * 0.85, H * 0.85, 0, W * 0.85, H * 0.85, W * 0.5);
+      coolGrad.addColorStop(0, 'rgba(80,80,120,0.08)');
+      coolGrad.addColorStop(1, 'rgba(80,80,120,0)');
+      ctx.fillStyle = coolGrad;
       ctx.fillRect(0, 0, W, H);
     }
 
@@ -496,20 +534,147 @@
       drawIsoBlock(ctx, 4.65, 2.5,  3.70, 0.15, 0.4,  0.05, '#A06030','#884820','#663810');
     }
 
+    // ── Step 8a: Wall clock (2D canvas, left wall x=0) ───────────────
+    function drawClock(ctx) {
+      const p = toScreen(0, 5, 4);
+      const cx = p.x, cy = p.y;
+      const R = BASE_PIXEL * 3.5, r = BASE_PIXEL * 3;
+
+      ctx.save();
+
+      // Outer ring
+      ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = '#F5E6C8'; ctx.fill();
+      ctx.strokeStyle = '#6B4423'; ctx.lineWidth = 2; ctx.stroke();
+
+      // Inner face
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFF8EE'; ctx.fill();
+
+      // 12 hour marks
+      ctx.strokeStyle = '#333333'; ctx.lineWidth = 1;
+      for (let i = 0; i < 12; i++) {
+        const a = i / 12 * Math.PI * 2 - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a) * r * 0.82, cy + Math.sin(a) * r * 0.82);
+        ctx.lineTo(cx + Math.cos(a) * r * 0.97, cy + Math.sin(a) * r * 0.97);
+        ctx.stroke();
+      }
+
+      // Hour hand (~10 o'clock:  −150° from 3-o'clock reference)
+      const hA = -Math.PI * 5 / 6;
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(hA) * r * 0.55, cy + Math.sin(hA) * r * 0.55);
+      ctx.strokeStyle = '#222222'; ctx.lineWidth = 2; ctx.stroke();
+
+      // Minute hand (~2 o'clock: −30°)
+      const mA = -Math.PI / 6;
+      ctx.beginPath(); ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(mA) * r * 0.80, cy + Math.sin(mA) * r * 0.80);
+      ctx.strokeStyle = '#444444'; ctx.lineWidth = 1.5; ctx.stroke();
+
+      // Centre dot
+      ctx.beginPath(); ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#333333'; ctx.fill();
+
+      ctx.restore();
+    }
+
+    // ── Step 8b: Framed picture (2D canvas, front wall z≈8) ──────────
+    function drawFramedPicture(ctx) {
+      const p = toScreen(5, 4, 8);
+      const cx = p.x, cy = p.y;
+      const fw = BASE_PIXEL * 10, fh = BASE_PIXEL * 8;
+
+      ctx.save();
+
+      // Outer wood frame
+      ctx.fillStyle = '#6B4423';
+      ctx.fillRect(cx - fw / 2, cy - fh / 2, fw, fh);
+
+      // Inner art area (4 px inset all sides)
+      const ix = cx - fw / 2 + 4, iy = cy - fh / 2 + 4;
+      const iw = fw - 8,           ih = fh - 8;
+
+      // Sky
+      ctx.fillStyle = '#87CEEB';
+      ctx.fillRect(ix, iy, iw, ih);
+
+      // Mountain 1 — left, darker
+      ctx.beginPath();
+      ctx.moveTo(ix,              iy + ih * 0.72);
+      ctx.lineTo(ix + iw * 0.42,  iy + ih * 0.22);
+      ctx.lineTo(ix + iw * 0.72,  iy + ih * 0.72);
+      ctx.closePath();
+      ctx.fillStyle = '#4A7C59'; ctx.fill();
+
+      // Mountain 2 — right, lighter (slightly overlapping)
+      ctx.beginPath();
+      ctx.moveTo(ix + iw * 0.32,  iy + ih * 0.72);
+      ctx.lineTo(ix + iw * 0.65,  iy + ih * 0.30);
+      ctx.lineTo(ix + iw,          iy + ih * 0.72);
+      ctx.closePath();
+      ctx.fillStyle = '#6B9A6B'; ctx.fill();
+
+      // Ground strip
+      ctx.fillStyle = '#8B6040';
+      ctx.fillRect(ix, iy + ih * 0.72, iw, ih * 0.28);
+
+      ctx.restore();
+    }
+
+    // ── Step 8c: Sticky notes (2D canvas, left wall x=0) ─────────────
+    function drawStickyNotes(ctx) {
+      const notes = [
+        { gx: 0, gy: 3,   gz: 5,   color: '#FFE066', rot:  0.05 },
+        { gx: 0, gy: 3.5, gz: 5.5, color: '#FF9966', rot: -0.05 },
+        { gx: 0, gy: 4,   gz: 5,   color: '#66CCFF', rot:  0.03 },
+      ];
+      const s = BASE_PIXEL * 4;
+
+      for (const { gx, gy, gz, color, rot } of notes) {
+        const p = toScreen(gx, gy, gz);
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(rot);
+
+        // Note body
+        ctx.fillStyle = color;
+        ctx.fillRect(-s / 2, -s / 2, s, s);
+
+        // Simulated text lines
+        ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+        ctx.lineWidth = 0.8;
+        for (let l = 0; l < 3; l++) {
+          const ly = -s / 2 + s * (0.28 + l * 0.24);
+          ctx.beginPath();
+          ctx.moveTo(-s / 2 + s * 0.12, ly);
+          ctx.lineTo( s / 2 - s * 0.12, ly);
+          ctx.stroke();
+        }
+
+        ctx.restore();
+      }
+    }
+
     // ── Scene — painter order: ascending (x+z) ────────────────────────
     function drawScene(ctx) {
       ctx.clearRect(0, 0, W, H);
+      drawFloorShadows(ctx);      // shadows under furniture (before all objects)
       drawRoom(ctx);              // floor + walls          x+z  0–16
       drawWindow(ctx);            // left wall              x+z ≈  3
+      drawClock(ctx);             // left wall, high        x+z ≈  4
       drawLargePlant(ctx);        // left of desk           x+z ≈  4
       drawDesk(ctx);              // center room            x+z ≈  5–10
+      drawStickyNotes(ctx);       // left wall near desk    x+z ≈  5
       drawChair(ctx);             // in front of desk       x+z ≈  5–7
       drawDeskItems(ctx);         // monitor/kbd/mouse      x+z ≈  7–9
       drawSmallDeskPlant(ctx);    // on desk back-left      x+z ≈  7
       drawDeskSmallItems(ctx);    // lamp, notebook, mug    x+z ≈  7–8
       drawTallCornerPlant(ctx);   // front-left corner      x+z ≈  9
+      drawFramedPicture(ctx);     // front wall             x+z ≈ 13
       drawBookshelf(ctx);         // near front             x+z ≈ 13
-      drawWindowLight(ctx);       // warm glow overlay (last)
+      drawAmbientLight(ctx);      // warm + cool overlay (last)
     }
 
     // ── Render loop ───────────────────────────────────────────────────
@@ -524,10 +689,16 @@
     loop();
 
     // ── Controls ──────────────────────────────────────────────────────
-    // Tap/click to reposition scene origin
+    // Tap/click to reposition scene origin; sync offset sliders
     artCanvas.addEventListener('pointerdown', e => {
       originX = e.clientX;
       originY = e.clientY;
+      offsetX = originX - W * 0.5;
+      offsetY = originY - H * 0.42;
+      document.getElementById('ox-slider').value = Math.round(offsetX);
+      document.getElementById('oy-slider').value = Math.round(offsetY);
+      document.getElementById('ox-val').textContent = Math.round(offsetX);
+      document.getElementById('oy-val').textContent = Math.round(offsetY);
     });
 
     // BASE_PIXEL slider
@@ -536,6 +707,23 @@
     slider.addEventListener('input', () => {
       BASE_PIXEL = +slider.value;
       pxLabel.textContent = BASE_PIXEL;
+    });
+
+    // X/Y offset sliders
+    const oxSlider = document.getElementById('ox-slider');
+    const oxVal    = document.getElementById('ox-val');
+    oxSlider.addEventListener('input', () => {
+      offsetX = +oxSlider.value;
+      oxVal.textContent = offsetX;
+      resetOrigin();
+    });
+
+    const oySlider = document.getElementById('oy-slider');
+    const oyVal    = document.getElementById('oy-val');
+    oySlider.addEventListener('input', () => {
+      offsetY = +oySlider.value;
+      oyVal.textContent = offsetY;
+      resetOrigin();
     });
 
     // Toggle camera visibility
