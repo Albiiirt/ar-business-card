@@ -180,12 +180,68 @@
       drawIsoBlock(ctx, x, y, z, w, h, d, cT, cL, cR);
     }
 
-    // ── Scene (placeholder — scene objects added in Step 2) ───────────
+    // ── Palette ───────────────────────────────────────────────────────
+    const C = {
+      floorA:  '#C49A6C',  // warm wood light
+      floorB:  '#B5895B',  // warm wood dark
+      wallA:   '#F0C4A0',  // peach wall light
+      wallB:   '#E2B090',  // peach wall mid
+      wallDark:'#C89070',  // peach wall shadow
+      skirting:'#D4A870',  // skirting board
+    };
+
+    // ── Room base ─────────────────────────────────────────────────────
+    // Grid is 8×8 tiles. Each tile = 1 world unit.
+    // Origin of room: back-left corner at world (0, 0, 0).
+    // Floor spans x: 0..8, z: 0..8, y=0..0.15 (thin slab).
+    // Back wall:  z = 0, spans x: 0..8, y: 0..6, d=0.18
+    // Left wall:  x = 0, spans z: 0..8, y: 0..6, w=0.18
+    const ROOM = 8;   // tiles wide & deep
+    const WALL_H = 6; // wall height in world units
+    const WALL_T = 0.18;
+    const FLOOR_T = 0.14;
+
+    function drawRoom(ctx) {
+      // ── Floor tiles (back-to-front painter order: low-x low-z first) ──
+      for (let xi = 0; xi < ROOM; xi++) {
+        for (let zi = 0; zi < ROOM; zi++) {
+          const hex = (xi + zi) % 2 === 0 ? C.floorA : C.floorB;
+          block(ctx, xi, 0, zi, 1, FLOOR_T, 1, hex);
+        }
+      }
+
+      // ── Skirting boards (thin strip at wall base) ─────────────────
+      // Along back wall (z=0)
+      for (let xi = 0; xi < ROOM; xi++) {
+        block(ctx, xi, FLOOR_T, 0, 1, 0.12, WALL_T, C.skirting);
+      }
+      // Along left wall (x=0)
+      for (let zi = 0; zi < ROOM; zi++) {
+        block(ctx, 0, FLOOR_T, zi, WALL_T, 0.12, 1, C.skirting);
+      }
+
+      // ── Back wall (z = 0, facing +z) ─────────────────────────────
+      // 8 columns × WALL_H rows of blocks, painted bottom→top, left→right
+      for (let xi = 0; xi < ROOM; xi++) {
+        for (let yi = 0; yi < WALL_H; yi++) {
+          const hex = (xi + yi) % 2 === 0 ? C.wallA : C.wallB;
+          block(ctx, xi, FLOOR_T + yi, 0, 1, 1, WALL_T, hex);
+        }
+      }
+
+      // ── Left wall (x = 0, facing +x) ─────────────────────────────
+      for (let zi = 0; zi < ROOM; zi++) {
+        for (let yi = 0; yi < WALL_H; yi++) {
+          const hex = (zi + yi) % 2 === 0 ? C.wallA : C.wallB;
+          block(ctx, 0, FLOOR_T + yi, zi, WALL_T, 1, 1, hex);
+        }
+      }
+    }
+
+    // ── Scene ─────────────────────────────────────────────────────────
     function drawScene(ctx) {
       ctx.clearRect(0, 0, W, H);
-
-      // Test cube: single orange block to verify drawIsoBlock works
-      block(ctx, 0, 0, 0, 1, 1, 1, '#D4845A');
+      drawRoom(ctx);
     }
 
     // ── Render loop ───────────────────────────────────────────────────
