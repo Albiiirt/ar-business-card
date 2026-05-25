@@ -207,11 +207,11 @@
     // Grid is 8×8 tiles. Each tile = 1 world unit.
     // Origin of room: back-left corner at world (0, 0, 0).
     // Floor spans x: 0..8, z: 0..8, y=0..0.15 (thin slab).
-    // Back wall:  z = 0, spans x: 0..8, y: 0..6, d=0.18
-    // Left wall:  x = 0, spans z: 0..8, y: 0..6, w=0.18
+    // Back wall:  z = 0, spans x: 0..8, y: 0..6, d=0.08
+    // Left wall:  x = 0, spans z: 0..8, y: 0..6, w=0.08
     const ROOM = 8;   // tiles wide & deep
     const WALL_H = 6; // wall height in world units
-    const WALL_T = 0.18;
+    const WALL_T = 0.08;
     const FLOOR_T = 0.14;
 
     function drawRoom(ctx) {
@@ -360,42 +360,27 @@
       ctx.fillRect(0, 0, W, H);
     }
 
-    // ── Step 4: Chair ─────────────────────────────────────────────────
-    // Seat at (3,2,1.5), backrest at back edge, armrests on sides.
-    // Draw order within chair: ground→pole→seat→armrests→backrest
+    // ── Step 4: Chair — seat at (3,0,2), compact, sits on floor ─────────
     function drawChair(ctx) {
-      const sx=3, sy=2, sz=1.5, sw=1.8, sh=0.4, sd=1.8;
+      const sx=3, sy=0, sz=2;
+      const sw=1.2, sh=0.3, sd=1.2;
 
-      // 4 wheels – sorted ascending x+z (front/left first, back/right last)
-      const wC = ['#222222', '#1A1A1A', '#111111'];
-      for (const [wx, wz] of [
-        [3.775, 1.25],   // front  x+z ≈ 5.0
-        [2.75,  2.275],  // left   x+z ≈ 5.0
-        [4.8,   2.275],  // right  x+z ≈ 7.1
-        [3.775, 3.3],    // back   x+z ≈ 7.1
-      ]) {
-        drawIsoBlock(ctx, wx, 0, wz, 0.25, 0.25, 0.25, wC[0], wC[1], wC[2]);
-      }
-
-      // Base cross: horizontal bar + vertical bar (form a plus at y=0)
-      const bC = ['#333333', '#1A1A1A', '#111111'];
-      drawIsoBlock(ctx, 3.0,  0, 2.25, 1.8, 0.15, 0.3,  bC[0], bC[1], bC[2]);  // ─
-      drawIsoBlock(ctx, 3.75, 0, 1.5,  0.3, 0.15, 1.8,  bC[0], bC[1], bC[2]);  // │
-
-      // Center pole (pole_x = seat_cx - 0.15, pole_z = seat_cz - 0.15)
-      drawIsoBlock(ctx, 3.75, 0, 2.25, 0.3, 2, 0.3, '#444444', '#222222', '#1A1A1A');
+      // Cross base (max 1.4 span)
+      const bC = ['#333333','#1A1A1A','#111111'];
+      drawIsoBlock(ctx, sx+0.1, 0, sz+0.5, 1.0, 0.1, 0.2, bC[0],bC[1],bC[2]);  // ─
+      drawIsoBlock(ctx, sx+0.5, 0, sz+0.1, 0.2, 0.1, 1.0, bC[0],bC[1],bC[2]);  // │
 
       // Seat cushion
-      drawIsoBlock(ctx, sx, sy, sz, sw, sh, sd, '#4A4A6A', '#35356A', '#252550');
+      drawIsoBlock(ctx, sx, sy, sz, sw, sh, sd, '#4A4A6A','#35356A','#252550');
 
-      // Left armrest (x = left edge of seat, z inset 0.2 from front, depth sd-0.4)
-      drawIsoBlock(ctx, sx,        sy+sh, sz+0.2, 0.2, 0.8, sd-0.4, '#35356A', '#252550', '#1A1A40');
+      // Left armrest
+      drawIsoBlock(ctx, sx,           sy+sh, sz+0.1, 0.15, 0.4, sd-0.2, '#35356A','#252550','#1A1A40');
 
-      // Backrest (same x as seat, at z = sz+sd-0.2 = 3.1 — spec: z+1.6)
-      drawIsoBlock(ctx, sx,        sy+sh, sz+sd-0.2, sw-0.2, 2, 0.2, '#4A4A6A', '#35356A', '#252550');
+      // Backrest
+      drawIsoBlock(ctx, sx, sy+sh, sz+sd-0.2, 1.1, 1.5, 0.2, '#4A4A6A','#35356A','#252550');
 
-      // Right armrest (x = right edge of seat, drawn last → renders on top in right region)
-      drawIsoBlock(ctx, sx+sw-0.2, sy+sh, sz+0.2, 0.2, 0.8, sd-0.4, '#35356A', '#252550', '#1A1A40');
+      // Right armrest
+      drawIsoBlock(ctx, sx+sw-0.15, sy+sh, sz+0.1, 0.15, 0.4, sd-0.2, '#35356A','#252550','#1A1A40');
     }
 
     // ── Step 5: Monitor, keyboard, mouse ─────────────────────────────
@@ -442,21 +427,20 @@
       drawIsoBlock(ctx, 5.15, 2.65, 3.65, 0.1, 0.1, 0.1, '#888866','#666644','#444422');
     }
 
-    // ── Step 6a: Large floor plant (left of desk) ────────────────────
-    // Pot at (1,0,2), foliage centred over pot centre (1.5, 2.5). x+z≈4
+    // ── Step 6a: Large floor plant — pot at (1.5,0,2), x+z≈3.5 ─────────
     function drawLargePlant(ctx) {
-      const pcx = 1.5, pcz = 2.5;   // pot centre
+      const pcx = 2.0, pcz = 2.5;   // centre of pot at (1.5,0,2) size 1×1×1
 
-      drawIsoBlock(ctx, 1, 0, 2,        1.0, 1.0, 1.0, '#C87840','#A06030','#884820'); // pot
-      drawIsoBlock(ctx, 1.1, 1, 2.1,    0.8, 0.2, 0.8, '#3A1F0A','#2A1205','#1A0A02'); // soil
+      drawIsoBlock(ctx, 1.5, 0, 2.0,    1.0, 1.0, 1.0, '#C87840','#A06030','#884820'); // pot
+      drawIsoBlock(ctx, 1.6, 1.0, 2.1,  0.8, 0.2, 0.8, '#3A1F0A','#2A1205','#1A0A02'); // soil
       drawIsoBlock(ctx, pcx-.15, 1.2, pcz-.15,
                                         0.3, 1.5, 0.3, '#4A3020','#3A2010','#2A1808'); // stem
-      // Foliage layers drawn bottom→top (same x+z centre, increasing y)
+      // Foliage layers bottom→top (increasing y, shrinking footprint)
       drawIsoBlock(ctx, pcx-1.25, 2.7, pcz-1.25,
                                         2.5, 0.6, 2.5, '#2D6A2D','#1F4F1F','#163816'); // L1
-      drawIsoBlock(ctx, pcx-.9,  3.3,  pcz-.9,
+      drawIsoBlock(ctx, pcx-.9,   3.3, pcz-.9,
                                         1.8, 0.6, 1.8, '#3A8A3A','#2A6A2A','#1F501F'); // L2
-      drawIsoBlock(ctx, pcx-.5,  3.9,  pcz-.5,
+      drawIsoBlock(ctx, pcx-.5,   3.9, pcz-.5,
                                         1.0, 0.6, 1.0, '#4AAA4A','#3A8A3A','#2A6A2A'); // L3
     }
 
@@ -469,15 +453,14 @@
       drawIsoBlock(ctx, px-.25, py+.5, pz-.25, 1.0, 0.8, 1.0, '#3A8A3A','#2A6A2A','#1F501F');
     }
 
-    // ── Step 6c: Tall corner plant ────────────────────────────────────
-    // Pot at (0.5, 0, 7.5) — front-left corner. x+z≈9
+    // ── Step 6c: Tall corner plant — pot at (1,0,6.5), x+z≈8.5 ─────────
     function drawTallCornerPlant(ctx) {
-      const pcx = 1.0, pcz = 8.0;   // pot centre
+      const pcx = 1.5, pcz = 7.0;   // centre of pot at (1.0,0,6.5) size 1×1×1
 
-      drawIsoBlock(ctx, .5, 0, 7.5,     1.0, 1.0, 1.0, '#A86830','#885020','#663A10'); // pot
+      drawIsoBlock(ctx, 1.0, 0, 6.5,    1.0, 1.0, 1.0, '#A86830','#885020','#663A10'); // pot
       drawIsoBlock(ctx, pcx-.15, 1, pcz-.15,
                                         0.3, 3.0, 0.3, '#4A3020','#3A2010','#2A1808'); // stem
-      // Leaf clusters at y = 1.5 / 2.5 / 3.5, centred & shrinking upward
+      // Leaf clusters at y=1.5/2.5/3.5, shrinking upward (foliage stays in bounds)
       drawIsoBlock(ctx, pcx-.75, 1.5, pcz-.75,
                                         1.5, 0.5, 1.5, '#2D6A2D','#1F4F1F','#163816');
       drawIsoBlock(ctx, pcx-.6,  2.5, pcz-.6,
@@ -663,15 +646,15 @@
       drawFloorShadows(ctx);      // shadows under furniture (before all objects)
       drawRoom(ctx);              // floor + walls          x+z  0–16
       drawWindow(ctx);            // left wall              x+z ≈  3
+      drawLargePlant(ctx);        // floor, back-left       x+z ≈  3.5
       drawClock(ctx);             // left wall, high        x+z ≈  4
-      drawLargePlant(ctx);        // left of desk           x+z ≈  4
+      drawStickyNotes(ctx);       // left wall              x+z ≈  5
+      drawChair(ctx);             // floor, front of desk   x+z ≈  5
       drawDesk(ctx);              // center room            x+z ≈  5–10
-      drawStickyNotes(ctx);       // left wall near desk    x+z ≈  5
-      drawChair(ctx);             // in front of desk       x+z ≈  5–7
       drawDeskItems(ctx);         // monitor/kbd/mouse      x+z ≈  7–9
       drawSmallDeskPlant(ctx);    // on desk back-left      x+z ≈  7
       drawDeskSmallItems(ctx);    // lamp, notebook, mug    x+z ≈  7–8
-      drawTallCornerPlant(ctx);   // front-left corner      x+z ≈  9
+      drawTallCornerPlant(ctx);   // floor, mid corner      x+z ≈  8.5
       drawFramedPicture(ctx);     // front wall             x+z ≈ 13
       drawBookshelf(ctx);         // near front             x+z ≈ 13
       drawAmbientLight(ctx);      // warm + cool overlay (last)
