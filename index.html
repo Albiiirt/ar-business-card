@@ -30,95 +30,48 @@
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
   >
-    <a-marker preset="hiro" id="mk" pixel-art-marker></a-marker>
+    <a-assets>
+      <img id="f0" src="f0.png" crossorigin="anonymous">
+      <img id="f1" src="f1.png" crossorigin="anonymous">
+      <img id="f2" src="f2.png" crossorigin="anonymous">
+      <img id="f3" src="f3.png" crossorigin="anonymous">
+    </a-assets>
+
+    <a-marker preset="hiro" id="mk">
+      <a-image
+        id="arimg"
+        src="#f0"
+        position="0 0.01 0"
+        rotation="-90 0 0"
+        width="1.8"
+        height="1.8"
+      ></a-image>
+    </a-marker>
+
     <a-entity camera></a-entity>
   </a-scene>
 
   <script>
-    /* ─── Paleta ─────────────────────────────────────────── */
-    const P = [
-      null,
-      '#0d0d1a','#1e3a5f','#334155','#2d1b4e',
-      '#e94560','#08d9d6','#ffffff','#f5c5a3','#1a0a2e',
-      '#4a6fa5','#7dd3fc','#f0abfc','#4ade80','#fbbf24','#94a3b8'
-    ];
+    let fi = 0;
+    const frames = ['#f0','#f1','#f2','#f3'];
+    const arimg  = document.getElementById('arimg');
 
-    /* ─── Frames pixel art 16×18 ─────────────────────────── */
-    const F = [
-      [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
-      [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
-      [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
-      [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
-    ];
-
-    /* ─── Dibuix canvas ──────────────────────────────────── */
-    function drawFrame(ctx, f) {
-      const PS = 28, OX = 28, OY = 8;
-      ctx.clearRect(0, 0, 512, 512);
-      for (let r = 0; r < f.length; r++)
-        for (let c = 0; c < f[r].length; c++) {
-          const ci = f[r][c];
-          if (!ci) continue;
-          ctx.fillStyle = P[ci];
-          ctx.fillRect(OX + c*PS, OY + r*PS, PS-1, PS-1);
-        }
-      ctx.fillStyle = 'rgba(13,13,26,0.92)';
-      ctx.fillRect(20, 468, 472, 36);
-      ctx.fillStyle = '#08d9d6';
-      ctx.font = 'bold 17px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('ALBERT CANADES · AI Developer', 256, 491);
-    }
-
-    /* ─── Component: crea malla Three.js directament ─────── */
-    AFRAME.registerComponent('pixel-art-marker', {
-      init: function () {
-        // Canvas i textura Three.js
-        const cv  = document.createElement('canvas');
-        cv.width  = 512;
-        cv.height = 512;
-        const ctx = cv.getContext('2d');
-        const tex = new THREE.CanvasTexture(cv);
-        tex.minFilter = THREE.LinearFilter;
-        tex.magFilter = THREE.NearestFilter;
-
-        // Malla Three.js plana sobre el marcador
-        const geo = new THREE.PlaneGeometry(1.8, 1.8);
-        const mat = new THREE.MeshBasicMaterial({
-          map: tex,
-          transparent: true,
-          alphaTest: 0.01,
-          side: THREE.DoubleSide,
-          depthWrite: false
-        });
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.rotation.x = -Math.PI / 2;  // horitzontal sobre el marcador
-        mesh.position.y = 0.01;
-        this.el.object3D.add(mesh);
-
-        // Animació
-        let fi = 0;
-        drawFrame(ctx, F[0]);
-        tex.needsUpdate = true;
-
-        setInterval(() => {
-          fi = (fi + 1) % F.length;
-          drawFrame(ctx, F[fi]);
-          tex.needsUpdate = true;
-        }, 400);
-      }
+    document.querySelector('a-scene').addEventListener('loaded', () => {
+      setInterval(() => {
+        fi = (fi + 1) % frames.length;
+        arimg.setAttribute('src', frames[fi]);
+      }, 400);
     });
 
-    /* ─── UI ─────────────────────────────────────────────── */
     const st = document.getElementById('status');
     document.getElementById('mk').addEventListener('markerFound', () => {
-      st.textContent    = '▲ Albert Canades · AI Developer';
-      st.style.color    = '#4ade80';
+      st.textContent       = '▲ Albert Canades · AI Developer';
+      st.style.color       = '#4ade80';
       st.style.borderColor = '#4ade80';
     });
     document.getElementById('mk').addEventListener('markerLost', () => {
-      st.textContent    = '✦ Apunta la càmera al marcador Hiro';
-      st.style.color    = '#08d9d6';
+      st.textContent       = '✦ Apunta la càmera al marcador Hiro';
+      st.style.color       = '#08d9d6';
       st.style.borderColor = '#08d9d6';
     });
   </script>
