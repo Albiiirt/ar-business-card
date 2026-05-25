@@ -448,6 +448,54 @@
                                         0.8, 0.5, 0.8, '#3A8A3A','#2A6A2A','#1F501F');
     }
 
+    // ── Step 7: Desk lamp, mug, notebook ─────────────────────────────
+    function drawDeskSmallItems(ctx) {
+
+      // ── Desk Lamp ─────────────────────────────────────────────────
+      const bx=2.3, by=2.4, bz=4.8;
+      const bcx = bx+0.25, bcz = bz+0.25;   // base centre x/z
+
+      // Base: 0.5×0.2×0.5 at (bx, by, bz)
+      drawIsoBlock(ctx, bx, by, bz, 0.5, 0.2, 0.5, '#222222','#111111','#1A1A1A');
+
+      // Pole bottom: 0.15×1.2×0.15, centred over base
+      const px = bcx-0.075, pz = bcz-0.075;
+      drawIsoBlock(ctx, px, by+0.2, pz, 0.15, 1.2, 0.15, '#333333','#222222','#1A1A1A');
+
+      // Pole arm: 0.15×0.8×0.8, extends forward (−z) from pole top
+      const poleTopY = by+0.2+1.2;           // y = 3.8
+      const armZ     = bcz-0.8;              // arm front z = 4.25
+      drawIsoBlock(ctx, px, poleTopY, armZ, 0.15, 0.8, 0.8, '#333333','#222222','#1A1A1A');
+
+      // Lamp head: 0.9×0.4×0.9, centred over arm at arm top
+      const headY  = poleTopY+0.8;           // y = 4.6
+      const armCZ  = armZ+0.4;               // arm centre z = 4.65
+      drawIsoBlock(ctx, bcx-0.45, headY, armCZ-0.45, 0.9, 0.4, 0.9, '#CCAA00','#AA8800','#886600');
+
+      // Light cone: filled arc below lamp head
+      const lp = toScreen(bcx, headY, armCZ);
+      ctx.beginPath();
+      ctx.arc(lp.x, lp.y, BASE_PIXEL * 5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,220,100,0.10)';
+      ctx.fill();
+
+      // ── Notebook ──────────────────────────────────────────────────
+      // Cover: 1×0.08×0.75 at (2.8, 2.4, 3.6)
+      drawIsoBlock(ctx, 2.8,  2.4,  3.6,   1.0,  0.08, 0.75, '#E8D5B0','#C8B590','#A89570');
+      // Pages: 0.95×0.04×0.7, slightly inset on top
+      drawIsoBlock(ctx, 2.825,2.48, 3.625, 0.95, 0.04, 0.7,  '#F5F0E8','#E0DDD8','#D0CCC8');
+      // Spine: 0.05×0.12×0.7 on left edge
+      drawIsoBlock(ctx, 2.8,  2.4,  3.625, 0.05, 0.12, 0.7,  '#8B6040','#6B4020','#4B2810');
+
+      // ── Mug ───────────────────────────────────────────────────────
+      // Body: 0.45×0.6×0.45 at (4.2, 2.4, 3.5)
+      drawIsoBlock(ctx, 4.2,  2.4,  3.5,  0.45, 0.6,  0.45, '#F5E6C8','#C87840','#A06030');
+      // Coffee surface: 0.35×0.05×0.35, inset on top
+      drawIsoBlock(ctx, 4.25, 3.0,  3.55, 0.35, 0.05, 0.35, '#3A1F0A','#2A1205','#1A0A02');
+      // Handle: 0.15×0.4×0.05, on +x (right) face, centred vertically and in z
+      drawIsoBlock(ctx, 4.65, 2.5,  3.70, 0.15, 0.4,  0.05, '#A06030','#884820','#663810');
+    }
+
     // ── Scene — painter order: ascending (x+z) ────────────────────────
     function drawScene(ctx) {
       ctx.clearRect(0, 0, W, H);
@@ -458,6 +506,7 @@
       drawChair(ctx);             // in front of desk       x+z ≈  5–7
       drawDeskItems(ctx);         // monitor/kbd/mouse      x+z ≈  7–9
       drawSmallDeskPlant(ctx);    // on desk back-left      x+z ≈  7
+      drawDeskSmallItems(ctx);    // lamp, notebook, mug    x+z ≈  7–8
       drawTallCornerPlant(ctx);   // front-left corner      x+z ≈  9
       drawBookshelf(ctx);         // near front             x+z ≈ 13
       drawWindowLight(ctx);       // warm glow overlay (last)
