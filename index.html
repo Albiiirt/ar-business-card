@@ -30,50 +30,167 @@
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
   >
-    <a-assets>
-      <img id="f0" src="f0.png" crossorigin="anonymous">
-      <img id="f1" src="f1.png" crossorigin="anonymous">
-      <img id="f2" src="f2.png" crossorigin="anonymous">
-      <img id="f3" src="f3.png" crossorigin="anonymous">
-    </a-assets>
-
-    <a-marker preset="hiro" id="mk">
-      <a-image
-        id="arimg"
-        src="#f0"
-        position="0 0.01 0"
-        rotation="-90 0 0"
-        width="1.8"
-        height="1.8"
-      ></a-image>
-    </a-marker>
-
+    <a-marker preset="hiro" id="mk" voxel-room></a-marker>
     <a-entity camera></a-entity>
   </a-scene>
 
   <script>
-    let fi = 0;
-    const frames = ['#f0','#f1','#f2','#f3'];
-    const arimg  = document.getElementById('arimg');
+  AFRAME.registerComponent('voxel-room', {
+    init: function () {
+      const scene = this.el.sceneEl.object3D;
+      const root  = new THREE.Group();
 
-    document.querySelector('a-scene').addEventListener('loaded', () => {
+      /* ── Materials cache ──────────────────────────────── */
+      const M = {};
+      function mat(hex, emissive) {
+        if (!M[hex]) {
+          M[hex] = new THREE.MeshLambertMaterial({
+            color: hex,
+            emissive: emissive || 0x000000,
+            emissiveIntensity: emissive ? 0.4 : 0
+          });
+        }
+        return M[hex];
+      }
+
+      /* ── Box helper ───────────────────────────────────── */
+      // cx,cy,cz = centre  |  w,h,d = size  |  hex = colour
+      function b(cx, cy, cz, w, h, d, hex, emissive) {
+        const geo  = new THREE.BoxGeometry(w, h, d);
+        const mesh = new THREE.Mesh(geo, mat(hex, emissive));
+        mesh.position.set(cx, cy, cz);
+        root.add(mesh);
+        return mesh;
+      }
+
+      const U = 0.13; // 1 voxel unit
+
+      /* ── FLOOR ────────────────────────────────────────── */
+      for (let x = 0; x < 9; x++)
+        for (let z = 0; z < 9; z++)
+          b((x-4)*U, 0, (z-4)*U, U*0.96, U*0.18, U*0.96,
+            (x+z)%2===0 ? 0x1a1035 : 0x120d2a);
+
+      /* ── BACK WALL (z = -4.5U) ────────────────────────── */
+      for (let x = 0; x < 9; x++)
+        for (let y = 0; y < 7; y++)
+          b((x-4)*U, (y+1)*U, -4.5*U, U*0.96, U*0.96, U*0.18,
+            y < 2 ? 0x2a1f1a : 0x1a3a5e);
+
+      /* ── LEFT WALL (x = -4.5U) ────────────────────────── */
+      for (let z = 0; z < 9; z++)
+        for (let y = 0; y < 7; y++)
+          b(-4.5*U, (y+1)*U, (z-4)*U, U*0.18, U*0.96, U*0.96,
+            y < 2 ? 0x221a16 : 0x143050);
+
+      /* ── DESK top (L-shape, back-left) ───────────────── */
+      // back segment  x:[-4,-1]  z:[-4,-3]
+      for (let x = -4; x <= -1; x++)
+        b(x*U, 3.3*U, -3.5*U, U*0.96, U*0.3, U*0.96, 0x8B5E3C);
+      // left segment  x:[-4,-3]  z:[-3,-1]
+      for (let z = -3; z <= -1; z++)
+        b(-3.5*U, 3.3*U, z*U, U*0.96, U*0.3, U*0.96, 0x7a5130);
+
+      /* ── DESK body (drawers) ──────────────────────────── */
+      b(-4*U, 1.7*U, -3.5*U, U*0.9, U*2.8, U*0.9, 0x6B4423); // leg L
+      b(-1*U, 1.7*U, -3.5*U, U*0.9, U*2.8, U*0.9, 0x6B4423); // leg R
+      b(-4*U, 1.7*U, -1*U,   U*0.9, U*2.8, U*0.9, 0x6B4423); // side leg
+
+      /* ── MONITOR (dual screen) ────────────────────────── */
+      // Stand
+      b(-2.5*U, 3.9*U, -4.1*U, U*0.4, U*0.5, U*0.4, 0x111122);
+      // Frame L
+      b(-3.5*U, 5.2*U, -4.2*U, U*2.2, U*1.6, U*0.18, 0x0d0d1e);
+      this.screenL = b(-3.5*U, 5.2*U, -4.12*U, U*1.9, U*1.3, U*0.05, 0x08d9d6, 0x08d9d6);
+      // Frame R
+      b(-1*U, 5.2*U, -4.2*U, U*2.2, U*1.6, U*0.18, 0x0d0d1e);
+      this.screenR = b(-1*U, 5.2*U, -4.12*U, U*1.9, U*1.3, U*0.05, 0x4ade80, 0x4ade80);
+
+      /* ── KEYBOARD ─────────────────────────────────────── */
+      b(-2.5*U, 3.5*U, -3.2*U, U*3, U*0.15, U*0.8, 0x334155);
+      for (let k = 0; k < 5; k++)
+        b((-4+k)*U*0.6-1.5*U, 3.62*U, -3.2*U, U*0.45, U*0.1, U*0.55, 0x475569);
+
+      /* ── CHAIR ────────────────────────────────────────── */
+      b(-2.5*U, 2.4*U, -1.5*U, U*2.5, U*0.25, U*2.5, 0x533483); // seat
+      b(-2.5*U, 3.6*U, -0.5*U, U*2.5, U*2.5, U*0.25, 0x3b2272); // back
+      b(-3.5*U, 1.2*U, -2.5*U, U*0.3, U*2.2, U*0.3, 0x2d1b4e); // leg BL
+      b(-1.5*U, 1.2*U, -2.5*U, U*0.3, U*2.2, U*0.3, 0x2d1b4e); // leg BR
+      b(-3.5*U, 1.2*U, -0.5*U, U*0.3, U*2.2, U*0.3, 0x2d1b4e); // leg FL
+      b(-1.5*U, 1.2*U, -0.5*U, U*0.3, U*2.2, U*0.3, 0x2d1b4e); // leg FR
+
+      /* ── CHARACTER ────────────────────────────────────── */
+      // Lower body / legs
+      b(-3*U, 1.5*U, -2*U, U*0.8, U*2, U*0.8, 0x2d3748);  // left leg
+      b(-2*U, 1.5*U, -2*U, U*0.8, U*2, U*0.8, 0x2d3748);  // right leg
+      // Torso
+      b(-2.5*U, 3.2*U, -2.5*U, U*2, U*1.8, U*1.4, 0x4a6fa5);
+      // Neck
+      b(-2.5*U, 4.3*U, -2.6*U, U*0.6, U*0.4, U*0.6, 0xf5c5a3);
+      // Head
+      b(-2.5*U, 5*U, -2.6*U, U*1.4, U*1.4, U*1.3, 0xf5c5a3);
+      // Hair
+      b(-2.5*U, 5.7*U, -2.5*U, U*1.5, U*0.5, U*1.4, 0x1a0a2e);
+      // Left arm (extended to keyboard)
+      b(-3.8*U, 3.0*U, -3*U,  U*0.8, U*0.7, U*1.2, 0x4a6fa5);
+      b(-3.8*U, 2.9*U, -3.5*U, U*0.7, U*0.5, U*0.6, 0xf5c5a3); // hand
+      // Right arm
+      b(-1.2*U, 3.0*U, -3*U,  U*0.8, U*0.7, U*1.2, 0x4a6fa5);
+      b(-1.2*U, 2.9*U, -3.5*U, U*0.7, U*0.5, U*0.6, 0xf5c5a3); // hand
+
+      /* ── SHELF (right wall) ───────────────────────────── */
+      b(2*U, 5*U, -3.5*U, U*3, U*0.2, U*0.7, 0x8B5E3C);
+      b(1*U, 5.5*U, -3.6*U, U*0.5, U*1, U*0.5, 0x7dd3fc);  // book 1
+      b(1.8*U, 5.5*U, -3.6*U, U*0.5, U*0.8, U*0.5, 0xe94560); // book 2
+      b(2.5*U, 5.5*U, -3.6*U, U*0.5, U*1.1, U*0.5, 0x4ade80); // book 3
+
+      /* ── PLANT (front-right corner) ───────────────────── */
+      b(3.5*U, 0.5*U, 3.5*U, U*0.8, U*1, U*0.8, 0xffffff); // pot
+      b(3.5*U, 1.5*U, 3.5*U, U*0.9, U*1.2, U*0.9, 0x16a34a); // plant
+      b(3.5*U, 2.5*U, 3.5*U, U*0.6, U*0.7, U*0.6, 0x22c55e);
+
+      /* ── COFFEE MUG on desk ───────────────────────────── */
+      b(-0.5*U, 3.7*U, -3.6*U, U*0.5, U*0.7, U*0.5, 0xe94560);
+      b(-0.5*U, 4.0*U, -3.6*U, U*0.45, U*0.2, U*0.45, 0x111122); // coffee
+
+      /* ── LIGHTING ─────────────────────────────────────── */
+      root.add(new THREE.AmbientLight(0xffffff, 0.55));
+      const sun = new THREE.DirectionalLight(0xffeedd, 0.9);
+      sun.position.set(3, 6, 4);
+      root.add(sun);
+      const fill = new THREE.DirectionalLight(0x4488cc, 0.35);
+      fill.position.set(-4, 3, -4);
+      root.add(fill);
+
+      /* ── Position & scale ─────────────────────────────── */
+      root.position.set(0, 0.05, 0);
+      this.el.object3D.add(root);
+
+      /* ── Screen glow animation ────────────────────────── */
+      const colors = [0x08d9d6, 0x4ade80, 0x7dd3fc, 0xf0abfc];
+      let ci = 0;
       setInterval(() => {
-        fi = (fi + 1) % frames.length;
-        arimg.setAttribute('src', frames[fi]);
-      }, 400);
-    });
+        ci = (ci+1) % colors.length;
+        this.screenL.material.color.setHex(colors[ci]);
+        this.screenL.material.emissive.setHex(colors[ci]);
+        this.screenR.material.color.setHex(colors[(ci+2) % colors.length]);
+        this.screenR.material.emissive.setHex(colors[(ci+2) % colors.length]);
+      }, 500);
+    }
+  });
 
-    const st = document.getElementById('status');
-    document.getElementById('mk').addEventListener('markerFound', () => {
-      st.textContent       = '▲ Albert Canades · AI Developer';
-      st.style.color       = '#4ade80';
-      st.style.borderColor = '#4ade80';
-    });
-    document.getElementById('mk').addEventListener('markerLost', () => {
-      st.textContent       = '✦ Apunta la càmera al marcador Hiro';
-      st.style.color       = '#08d9d6';
-      st.style.borderColor = '#08d9d6';
-    });
+  /* ── UI ─────────────────────────────────────────────── */
+  const st = document.getElementById('status');
+  document.getElementById('mk').addEventListener('markerFound', () => {
+    st.textContent    = '▲ Albert Canades · AI Developer';
+    st.style.color    = '#4ade80';
+    st.style.borderColor = '#4ade80';
+  });
+  document.getElementById('mk').addEventListener('markerLost', () => {
+    st.textContent    = '✦ Apunta la càmera al marcador Hiro';
+    st.style.color    = '#08d9d6';
+    st.style.borderColor = '#08d9d6';
+  });
   </script>
 </body>
 </html>
