@@ -7,14 +7,14 @@
   <script src="https://cdn.jsdelivr.net/npm/aframe@1.2.0/dist/aframe.min.js"></script>
   <script src="aframe-ar.js"></script>
   <style>
-    * { margin:0; padding:0; }
-    body { overflow:hidden; background:#000; }
-    #status {
-      position:fixed; top:18px; left:50%; transform:translateX(-50%);
-      background:rgba(0,0,0,0.8); color:#08d9d6;
+    *{margin:0;padding:0;}
+    body{overflow:hidden;background:#000;}
+    #status{
+      position:fixed;top:18px;left:50%;transform:translateX(-50%);
+      background:rgba(0,0,0,0.8);color:#08d9d6;
       font:bold 13px 'Courier New',monospace;
-      padding:10px 22px; border-radius:20px; border:1px solid #08d9d6;
-      z-index:99999; pointer-events:none; white-space:nowrap;
+      padding:10px 22px;border-radius:20px;border:1px solid #08d9d6;
+      z-index:99999;pointer-events:none;white-space:nowrap;
     }
   </style>
 </head>
@@ -23,87 +23,130 @@
   <a-scene embedded arjs="sourceType:webcam;debugUIEnabled:false;"
     vr-mode-ui="enabled:false" device-orientation-permission-ui="enabled:false">
     <a-marker preset="hiro" id="mk">
-    <a-box position="-0.439 0.000 -0.439" width="0.273" height="0.026" depth="0.273" color="#1a1035" material="shader:flat"></a-box>
-    <a-box position="-0.439 0.000 -0.146" width="0.273" height="0.026" depth="0.273" color="#14092c" material="shader:flat"></a-box>
-    <a-box position="-0.439 0.000 0.146" width="0.273" height="0.026" depth="0.273" color="#1a1035" material="shader:flat"></a-box>
-    <a-box position="-0.439 0.000 0.439" width="0.273" height="0.026" depth="0.273" color="#14092c" material="shader:flat"></a-box>
-    <a-box position="-0.146 0.000 -0.439" width="0.273" height="0.026" depth="0.273" color="#14092c" material="shader:flat"></a-box>
-    <a-box position="-0.146 0.000 -0.146" width="0.273" height="0.026" depth="0.273" color="#1a1035" material="shader:flat"></a-box>
-    <a-box position="-0.146 0.000 0.146" width="0.273" height="0.026" depth="0.273" color="#14092c" material="shader:flat"></a-box>
-    <a-box position="-0.146 0.000 0.439" width="0.273" height="0.026" depth="0.273" color="#1a1035" material="shader:flat"></a-box>
-    <a-box position="0.146 0.000 -0.439" width="0.273" height="0.026" depth="0.273" color="#1a1035" material="shader:flat"></a-box>
-    <a-box position="0.146 0.000 -0.146" width="0.273" height="0.026" depth="0.273" color="#14092c" material="shader:flat"></a-box>
-    <a-box position="0.146 0.000 0.146" width="0.273" height="0.026" depth="0.273" color="#1a1035" material="shader:flat"></a-box>
-    <a-box position="0.146 0.000 0.439" width="0.273" height="0.026" depth="0.273" color="#14092c" material="shader:flat"></a-box>
-    <a-box position="0.439 0.000 -0.439" width="0.273" height="0.026" depth="0.273" color="#14092c" material="shader:flat"></a-box>
-    <a-box position="0.439 0.000 -0.146" width="0.273" height="0.026" depth="0.273" color="#1a1035" material="shader:flat"></a-box>
-    <a-box position="0.439 0.000 0.146" width="0.273" height="0.026" depth="0.273" color="#14092c" material="shader:flat"></a-box>
-    <a-box position="0.439 0.000 0.439" width="0.273" height="0.026" depth="0.273" color="#1a1035" material="shader:flat"></a-box>
-    <a-box position="0.000 0.520 -0.598" width="1.170" height="0.975" depth="0.039" color="#1a3a5e" material="shader:flat"></a-box>
-    <a-box position="-0.598 0.520 0.000" width="0.039" height="0.975" depth="1.170" color="#143050" material="shader:flat"></a-box>
-    <a-box position="0.000 0.143 -0.585" width="1.170" height="0.260" depth="0.026" color="#2a1f1a" material="shader:flat"></a-box>
-    <a-box position="-0.585 0.143 0.000" width="0.026" height="0.260" depth="1.170" color="#221a16" material="shader:flat"></a-box>
-    <a-box position="-0.520 0.442 -0.455" width="0.122" height="0.036" depth="0.122" color="#8B5E3C" material="shader:flat"></a-box>
-    <a-box position="-0.390 0.442 -0.455" width="0.122" height="0.036" depth="0.122" color="#8B5E3C" material="shader:flat"></a-box>
-    <a-box position="-0.260 0.442 -0.455" width="0.122" height="0.036" depth="0.122" color="#8B5E3C" material="shader:flat"></a-box>
-    <a-box position="-0.130 0.442 -0.455" width="0.122" height="0.036" depth="0.122" color="#8B5E3C" material="shader:flat"></a-box>
-    <a-box position="-0.455 0.442 -0.390" width="0.122" height="0.036" depth="0.122" color="#7a5130" material="shader:flat"></a-box>
-    <a-box position="-0.455 0.442 -0.260" width="0.122" height="0.036" depth="0.122" color="#7a5130" material="shader:flat"></a-box>
-    <a-box position="-0.455 0.442 -0.130" width="0.122" height="0.036" depth="0.122" color="#7a5130" material="shader:flat"></a-box>
-    <a-box position="-0.520 0.221 -0.455" width="0.052" height="0.364" depth="0.052" color="#6B4423" material="shader:flat"></a-box>
-    <a-box position="-0.130 0.221 -0.455" width="0.052" height="0.364" depth="0.052" color="#6B4423" material="shader:flat"></a-box>
-    <a-box position="-0.520 0.221 -0.130" width="0.052" height="0.364" depth="0.052" color="#6B4423" material="shader:flat"></a-box>
-    <a-box position="-0.325 0.494 -0.533" width="0.065" height="0.078" depth="0.065" color="#111122" material="shader:flat"></a-box>
-    <a-box position="-0.455 0.676 -0.549" width="0.299" height="0.221" depth="0.026" color="#0d0d1e" material="shader:flat"></a-box>
-    <a-box id="scL" position="-0.455 0.676 -0.536" width="0.260" height="0.182" depth="0.013" color="#08d9d6" material="shader:flat"></a-box>
-    <a-box position="-0.130 0.676 -0.549" width="0.299" height="0.221" depth="0.026" color="#0d0d1e" material="shader:flat"></a-box>
-    <a-box id="scR" position="-0.130 0.676 -0.536" width="0.260" height="0.182" depth="0.013" color="#4ade80" material="shader:flat"></a-box>
-    <a-box position="-0.325 0.458 -0.416" width="0.416" height="0.026" depth="0.117" color="#334155" material="shader:flat"></a-box>
-    <a-box position="-0.325 0.312 -0.195" width="0.338" height="0.039" depth="0.338" color="#533483" material="shader:flat"></a-box>
-    <a-box position="-0.325 0.481 -0.065" width="0.338" height="0.338" depth="0.039" color="#3b2272" material="shader:flat"></a-box>
-    <a-box position="-0.455 0.156 -0.325" width="0.039" height="0.286" depth="0.039" color="#2d1b4e" material="shader:flat"></a-box>
-    <a-box position="-0.195 0.156 -0.325" width="0.039" height="0.286" depth="0.039" color="#2d1b4e" material="shader:flat"></a-box>
-    <a-box position="-0.455 0.156 -0.065" width="0.039" height="0.286" depth="0.039" color="#2d1b4e" material="shader:flat"></a-box>
-    <a-box position="-0.195 0.156 -0.065" width="0.039" height="0.286" depth="0.039" color="#2d1b4e" material="shader:flat"></a-box>
-    <a-box position="-0.390 0.182 -0.260" width="0.111" height="0.260" depth="0.111" color="#2d3748" material="shader:flat"></a-box>
-    <a-box position="-0.260 0.182 -0.260" width="0.111" height="0.260" depth="0.111" color="#2d3748" material="shader:flat"></a-box>
-    <a-box position="-0.325 0.416 -0.325" width="0.273" height="0.247" depth="0.195" color="#4a6fa5" material="shader:flat"></a-box>
-    <a-box position="-0.325 0.579 -0.338" width="0.085" height="0.059" depth="0.085" color="#f5c5a3" material="shader:flat"></a-box>
-    <a-box position="-0.325 0.663 -0.338" width="0.195" height="0.195" depth="0.182" color="#f5c5a3" material="shader:flat"></a-box>
-    <a-box position="-0.325 0.760 -0.325" width="0.208" height="0.072" depth="0.195" color="#1a0a2e" material="shader:flat"></a-box>
-    <a-box position="-0.507 0.390 -0.390" width="0.111" height="0.098" depth="0.169" color="#4a6fa5" material="shader:flat"></a-box>
-    <a-box position="-0.507 0.377 -0.474" width="0.098" height="0.072" depth="0.085" color="#f5c5a3" material="shader:flat"></a-box>
-    <a-box position="-0.143 0.390 -0.390" width="0.111" height="0.098" depth="0.169" color="#4a6fa5" material="shader:flat"></a-box>
-    <a-box position="-0.143 0.377 -0.474" width="0.098" height="0.072" depth="0.085" color="#f5c5a3" material="shader:flat"></a-box>
-    <a-box position="0.260 0.650 -0.455" width="0.416" height="0.033" depth="0.098" color="#8B5E3C" material="shader:flat"></a-box>
-    <a-box position="0.130 0.722 -0.471" width="0.072" height="0.143" depth="0.072" color="#7dd3fc" material="shader:flat"></a-box>
-    <a-box position="0.234 0.722 -0.471" width="0.072" height="0.111" depth="0.072" color="#e94560" material="shader:flat"></a-box>
-    <a-box position="0.338 0.722 -0.471" width="0.072" height="0.156" depth="0.072" color="#4ade80" material="shader:flat"></a-box>
-    <a-box position="0.455 0.078 0.455" width="0.123" height="0.156" depth="0.123" color="#ffffff" material="shader:flat"></a-box>
-    <a-box position="0.455 0.221 0.455" width="0.143" height="0.169" depth="0.143" color="#16a34a" material="shader:flat"></a-box>
-    <a-box position="0.455 0.351 0.455" width="0.098" height="0.098" depth="0.098" color="#22c55e" material="shader:flat"></a-box>
-    <a-box position="-0.065 0.488 -0.471" width="0.078" height="0.111" depth="0.078" color="#e94560" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.000 -0.660" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.000 -0.440" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.000 -0.220" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.000 0.000" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.000 0.220" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.000 0.440" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.000 0.660" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="-0.440 0.000 -0.660" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="-0.440 0.000 -0.440" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="-0.440 0.000 -0.220" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="-0.440 0.000 0.000" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="-0.440 0.000 0.220" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="-0.440 0.000 0.440" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="-0.440 0.000 0.660" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="-0.220 0.000 -0.660" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="-0.220 0.000 -0.440" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="-0.220 0.000 -0.220" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="-0.220 0.000 0.000" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="-0.220 0.000 0.220" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="-0.220 0.000 0.440" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="-0.220 0.000 0.660" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.000 0.000 -0.660" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.000 0.000 -0.440" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.000 0.000 -0.220" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.000 0.000 0.000" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.000 0.000 0.220" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.000 0.000 0.440" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.000 0.000 0.660" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.220 0.000 -0.660" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.220 0.000 -0.440" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.220 0.000 -0.220" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.220 0.000 0.000" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.220 0.000 0.220" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.220 0.000 0.440" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.220 0.000 0.660" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.440 0.000 -0.660" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.440 0.000 -0.440" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.440 0.000 -0.220" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.440 0.000 0.000" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.440 0.000 0.220" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.440 0.000 0.440" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.440 0.000 0.660" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.660 0.000 -0.660" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.660 0.000 -0.440" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.660 0.000 -0.220" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.660 0.000 0.000" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.660 0.000 0.220" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.660 0.000 0.440" width="0.209" height="0.040" depth="0.209" color="#b8956a" material="shader:flat"></a-box>
+    <a-box position="0.660 0.000 0.660" width="0.209" height="0.040" depth="0.209" color="#c9a87c" material="shader:flat"></a-box>
+    <a-box position="0.000 0.770 -0.836" width="1.584" height="1.430" depth="0.055" color="#7ec8e3" material="shader:flat"></a-box>
+    <a-box position="0.000 0.198 -0.825" width="1.584" height="0.352" depth="0.044" color="#d4b896" material="shader:flat"></a-box>
+    <a-box position="-0.836 0.770 0.000" width="0.055" height="1.430" depth="1.584" color="#6db8d4" material="shader:flat"></a-box>
+    <a-box position="-0.825 0.198 0.000" width="0.044" height="0.352" depth="1.584" color="#c8a882" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.770 -0.660" width="0.209" height="0.066" depth="0.209" color="#a0522d" material="shader:flat"></a-box>
+    <a-box position="-0.440 0.770 -0.660" width="0.209" height="0.066" depth="0.209" color="#a0522d" material="shader:flat"></a-box>
+    <a-box position="-0.220 0.770 -0.660" width="0.209" height="0.066" depth="0.209" color="#a0522d" material="shader:flat"></a-box>
+    <a-box position="0.000 0.770 -0.660" width="0.209" height="0.066" depth="0.209" color="#a0522d" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.770 -0.660" width="0.209" height="0.066" depth="0.209" color="#8b4513" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.770 -0.440" width="0.209" height="0.066" depth="0.209" color="#8b4513" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.770 -0.220" width="0.209" height="0.066" depth="0.209" color="#8b4513" material="shader:flat"></a-box>
+    <a-box position="-0.440 0.396 -0.660" width="0.990" height="0.704" depth="0.187" color="#7a3c10" material="shader:flat"></a-box>
+    <a-box position="-0.660 0.396 -0.330" width="0.187" height="0.704" depth="0.660" color="#6b340e" material="shader:flat"></a-box>
+    <a-box position="-0.220 0.902 -0.792" width="0.110" height="0.154" depth="0.110" color="#222233" material="shader:flat"></a-box>
+    <a-box position="-0.440 1.188 -0.825" width="0.616" height="0.440" depth="0.048" color="#111122" material="shader:flat"></a-box>
+    <a-box id="scL" position="-0.440 1.188 -0.803" width="0.528" height="0.363" depth="0.026" color="#08d9d6" material="shader:flat"></a-box>
+    <a-box position="0.176 1.188 -0.825" width="0.616" height="0.440" depth="0.048" color="#111122" material="shader:flat"></a-box>
+    <a-box id="scR" position="0.176 1.188 -0.803" width="0.528" height="0.363" depth="0.026" color="#4ade80" material="shader:flat"></a-box>
+    <a-box position="-0.264 0.818 -0.484" width="0.836" height="0.044" depth="0.242" color="#445566" material="shader:flat"></a-box>
+    <a-box position="-0.484 0.843 -0.484" width="0.143" height="0.033" depth="0.187" color="#556677" material="shader:flat"></a-box>
+    <a-box position="-0.308 0.843 -0.484" width="0.143" height="0.033" depth="0.187" color="#556677" material="shader:flat"></a-box>
+    <a-box position="-0.132 0.843 -0.484" width="0.143" height="0.033" depth="0.187" color="#556677" material="shader:flat"></a-box>
+    <a-box position="0.044 0.843 -0.484" width="0.143" height="0.033" depth="0.187" color="#556677" material="shader:flat"></a-box>
+    <a-box position="0.220 0.843 -0.484" width="0.143" height="0.033" depth="0.187" color="#556677" material="shader:flat"></a-box>
+    <a-box position="-0.264 0.550 -0.264" width="0.660" height="0.077" depth="0.660" color="#8b3a8b" material="shader:flat"></a-box>
+    <a-box position="-0.264 0.858 -0.044" width="0.660" height="0.660" depth="0.077" color="#6b2a6b" material="shader:flat"></a-box>
+    <a-box position="-0.594 0.286 -0.594" width="0.077" height="0.528" depth="0.077" color="#3b1a3b" material="shader:flat"></a-box>
+    <a-box position="0.066 0.286 -0.594" width="0.077" height="0.528" depth="0.077" color="#3b1a3b" material="shader:flat"></a-box>
+    <a-box position="-0.594 0.286 0.066" width="0.077" height="0.528" depth="0.077" color="#3b1a3b" material="shader:flat"></a-box>
+    <a-box position="0.066 0.286 0.066" width="0.077" height="0.528" depth="0.077" color="#3b1a3b" material="shader:flat"></a-box>
+    <a-box position="-0.264 0.330 -0.396" width="0.220" height="0.528" depth="0.220" color="#334466" material="shader:flat"></a-box>
+    <a-box position="-0.264 0.770 -0.506" width="0.528" height="0.462" depth="0.352" color="#4a6fa5" material="shader:flat"></a-box>
+    <a-box position="-0.264 1.012 -0.528" width="0.154" height="0.110" depth="0.154" color="#f5c5a3" material="shader:flat"></a-box>
+    <a-box position="-0.264 1.188 -0.528" width="0.374" height="0.374" depth="0.330" color="#f5c5a3" material="shader:flat"></a-box>
+    <a-box position="-0.264 1.364 -0.506" width="0.396" height="0.132" depth="0.352" color="#1a0a2e" material="shader:flat"></a-box>
+    <a-box position="-0.550 0.704 -0.616" width="0.220" height="0.176" depth="0.330" color="#4a6fa5" material="shader:flat"></a-box>
+    <a-box position="-0.572 0.682 -0.737" width="0.198" height="0.132" depth="0.154" color="#f5c5a3" material="shader:flat"></a-box>
+    <a-box position="0.022 0.704 -0.616" width="0.220" height="0.176" depth="0.330" color="#4a6fa5" material="shader:flat"></a-box>
+    <a-box position="0.044 0.682 -0.737" width="0.198" height="0.132" depth="0.154" color="#f5c5a3" material="shader:flat"></a-box>
+    <a-box position="0.550 0.440 -0.770" width="0.110" height="0.770" depth="0.264" color="#8b4513" material="shader:flat"></a-box>
+    <a-box position="0.880 0.440 -0.770" width="0.110" height="0.770" depth="0.264" color="#8b4513" material="shader:flat"></a-box>
+    <a-box position="0.715 0.220 -0.759" width="0.264" height="0.044" depth="0.242" color="#7a3c10" material="shader:flat"></a-box>
+    <a-box position="0.715 0.440 -0.759" width="0.264" height="0.044" depth="0.242" color="#7a3c10" material="shader:flat"></a-box>
+    <a-box position="0.715 0.660 -0.759" width="0.264" height="0.044" depth="0.242" color="#7a3c10" material="shader:flat"></a-box>
+    <a-box position="0.616 0.550 -0.781" width="0.088" height="0.242" depth="0.176" color="#e94560" material="shader:flat"></a-box>
+    <a-box position="0.704 0.550 -0.781" width="0.088" height="0.198" depth="0.176" color="#7dd3fc" material="shader:flat"></a-box>
+    <a-box position="0.792 0.550 -0.781" width="0.088" height="0.286" depth="0.176" color="#fbbf24" material="shader:flat"></a-box>
+    <a-box position="0.616 1.210 -0.818" width="0.352" height="0.352" depth="0.044" color="#d4a853" material="shader:flat"></a-box>
+    <a-box position="0.616 1.210 -0.803" width="0.286" height="0.286" depth="0.022" color="#f5f0e8" material="shader:flat"></a-box>
+    <a-box position="0.660 0.132 0.660" width="0.242" height="0.286" depth="0.242" color="#e8e0d0" material="shader:flat"></a-box>
+    <a-box position="0.660 0.396 0.660" width="0.264" height="0.330" depth="0.264" color="#22863a" material="shader:flat"></a-box>
+    <a-box position="0.660 0.660 0.660" width="0.198" height="0.198" depth="0.198" color="#2ea043" material="shader:flat"></a-box>
+    <a-box position="0.110 0.832 -0.781" width="0.143" height="0.209" depth="0.143" color="#e94560" material="shader:flat"></a-box>
+    <a-box position="0.110 0.913 -0.781" width="0.132" height="0.055" depth="0.132" color="#1a0a0a" material="shader:flat"></a-box>
     </a-marker>
     <a-entity camera></a-entity>
   </a-scene>
   <script>
-    const cols = ['#08d9d6','#4ade80','#7dd3fc','#f0abfc','#fbbf24'];
-    let ci = 0;
-    setInterval(() => {
-      ci = (ci+1) % cols.length;
-      const L = document.getElementById('scL');
-      const R = document.getElementById('scR');
-      if (L) L.setAttribute('color', cols[ci]);
-      if (R) R.setAttribute('color', cols[(ci+2)%cols.length]);
-    }, 500);
-    const st = document.getElementById('status');
-    document.getElementById('mk').addEventListener('markerFound', () => {
+    const cols=['#08d9d6','#4ade80','#7dd3fc','#f0abfc','#fbbf24','#e94560'];
+    let ci=0;
+    setInterval(()=>{
+      ci=(ci+1)%cols.length;
+      const L=document.getElementById('scL');
+      const R=document.getElementById('scR');
+      if(L)L.setAttribute('color',cols[ci]);
+      if(R)R.setAttribute('color',cols[(ci+2)%cols.length]);
+    },500);
+    const st=document.getElementById('status');
+    document.getElementById('mk').addEventListener('markerFound',()=>{
       st.textContent='▲ Albert Canades · AI Developer';
-      st.style.color='#4ade80'; st.style.borderColor='#4ade80';
+      st.style.color='#4ade80';st.style.borderColor='#4ade80';
     });
-    document.getElementById('mk').addEventListener('markerLost', () => {
+    document.getElementById('mk').addEventListener('markerLost',()=>{
       st.textContent='✦ Apunta la càmera al marcador Hiro';
-      st.style.color='#08d9d6'; st.style.borderColor='#08d9d6';
+      st.style.color='#08d9d6';st.style.borderColor='#08d9d6';
     });
   </script>
 </body>
