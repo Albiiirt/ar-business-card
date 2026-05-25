@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>Albert Canades — AR</title>
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; background: #000; font-family: 'Courier New', monospace; }
+
+    #ui-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      pointer-events: none;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 24px;
+      gap: 10px;
+    }
+
+    #scan-hint {
+      background: rgba(10,10,20,0.82);
+      color: #08d9d6;
+      padding: 10px 22px;
+      border-radius: 24px;
+      font-size: 13px;
+      border: 1px solid #08d9d624;
+      letter-spacing: 0.05em;
+      transition: opacity 0.4s;
+    }
+
+    #scan-hint.hidden { opacity: 0; }
+
+    #found-badge {
+      background: rgba(10,10,20,0.82);
+      color: #4ade80;
+      padding: 8px 20px;
+      border-radius: 24px;
+      font-size: 12px;
+      border: 1px solid #4ade8024;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    #found-badge.visible { opacity: 1; }
+
+    a-scene { width: 100vw; height: 100vh; }
+  </style>
+</head>
+<body>
+
+  <div id="ui-overlay">
+    <div id="scan-hint">✦ Apunta la càmera al marcador de la targeta</div>
+    <div id="found-badge">▲ Albert Canades · AI Developer</div>
+  </div>
+
+  <a-scene
+    embedded
+    arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+    vr-mode-ui="enabled: false"
+    renderer="antialias: true; logarithmicDepthBuffer: true;"
+    device-orientation-permission-ui="enabled: false"
+  >
+    <a-assets>
+      <canvas id="pixelArtCanvas" width="320" height="320"></canvas>
+    </a-assets>
+
+    <a-marker type="barcode" value="5" id="marker">
+      <a-plane
+        id="pixelPlane"
+        position="0 0 0"
+        rotation="-90 0 0"
+        width="2"
+        height="2"
+        material="src: #pixelArtCanvas; transparent: true; alphaTest: 0.05; side: double; shader: flat"
+      ></a-plane>
+    </a-marker>
+
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <script>
+    const PALETTE = [
+      null,
+      '#0d0d1a',   // 1  bg dark
+      '#1e3a5f',   // 2  desk blue
+      '#334155',   // 3  stand grey
+      '#2d1b4e',   // 4  chair/legs dark purple
+      '#e94560',   // 5  accent red
+      '#08d9d6',   // 6  cyan
+      '#ffffff',   // 7  white
+      '#f5c5a3',   // 8  skin
+      '#1a0a2e',   // 9  hair dark
+      '#4a6fa5',   // 10 shirt blue
+      '#7dd3fc',   // 11 screen light blue
+      '#f0abfc',   // 12 screen pink
+      '#4ade80',   // 13 screen green
+      '#fbbf24',   // 14 monitor border gold
+      '#94a3b8',   // 15 keyboard grey
+    ];
+
+    // 6 animation frames, each 16 cols × 18 rows
+    const FRAMES = [[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],[[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]];
+
+    const canvas = document.getElementById('pixelArtCanvas');
+    const ctx = canvas.getContext('2d');
+    const PS = 17;      // pixel size (16 cols × 17px = 272 → fits in 320)
+    const OX = 24;      // horizontal offset to center
+    const OY = 6;       // vertical offset
+
+    let fi = 0;
+
+    function drawFrame(f) {
+      ctx.clearRect(0, 0, 320, 320);
+      ctx.fillStyle = 'rgba(0,0,0,0)';
+      ctx.fillRect(0, 0, 320, 320);
+
+      for (let r = 0; r < f.length; r++) {
+        for (let c = 0; c < f[r].length; c++) {
+          const ci = f[r][c];
+          if (!ci) continue;
+          ctx.fillStyle = PALETTE[ci];
+          ctx.fillRect(OX + c * PS, OY + r * PS, PS - 1, PS - 1);
+        }
+      }
+
+      // Name tag at bottom
+      ctx.fillStyle = 'rgba(13,13,26,0.9)';
+      ctx.fillRect(20, 292, 280, 26);
+      ctx.strokeStyle = '#08d9d640';
+      ctx.strokeRect(20, 292, 280, 26);
+      ctx.fillStyle = '#08d9d6';
+      ctx.font = 'bold 11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('ALBERT CANADES · AI Developer', 160, 309);
+    }
+
+    function tick() {
+      drawFrame(FRAMES[fi]);
+      fi = (fi + 1) % FRAMES.length;
+
+      // Tell Three.js to re-upload the canvas texture
+      const plane = document.querySelector('[material]');
+      if (plane?.components?.material?.material?.map) {
+        plane.components.material.material.map.needsUpdate = true;
+      }
+    }
+
+    const scene = document.querySelector('a-scene');
+    scene.addEventListener('loaded', () => {
+      drawFrame(FRAMES[0]);
+      setInterval(tick, 380);
+    });
+
+    // UI feedback
+    const marker = document.getElementById('marker');
+    const hint   = document.getElementById('scan-hint');
+    const badge  = document.getElementById('found-badge');
+
+    marker.addEventListener('markerFound',  () => { hint.classList.add('hidden');    badge.classList.add('visible'); });
+    marker.addEventListener('markerLost',   () => { hint.classList.remove('hidden'); badge.classList.remove('visible'); });
+  </script>
+</body>
+</html>
