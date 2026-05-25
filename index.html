@@ -15,13 +15,9 @@
       background: rgba(0,0,0,0.8);
       color: #08d9d6;
       font: bold 13px 'Courier New', monospace;
-      padding: 10px 22px;
-      border-radius: 20px;
+      padding: 10px 22px; border-radius: 20px;
       border: 1px solid #08d9d6;
-      z-index: 99999;
-      pointer-events: none;
-      white-space: nowrap;
-      transition: color .3s, border-color .3s;
+      z-index: 99999; pointer-events: none; white-space: nowrap;
     }
   </style>
 </head>
@@ -34,25 +30,12 @@
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
   >
-    <a-assets>
-      <canvas id="pc" width="512" height="512"></canvas>
-    </a-assets>
-
-    <a-marker preset="hiro" id="mk">
-      <a-image
-        src="#pc"
-        position="0 0.01 0"
-        rotation="-90 0 0"
-        width="1.8"
-        height="1.8"
-        transparent="true"
-      ></a-image>
-    </a-marker>
-
+    <a-marker preset="hiro" id="mk" pixel-art-marker></a-marker>
     <a-entity camera></a-entity>
   </a-scene>
 
   <script>
+    /* ─── Paleta ─────────────────────────────────────────── */
     const P = [
       null,
       '#0d0d1a','#1e3a5f','#334155','#2d1b4e',
@@ -60,22 +43,16 @@
       '#4a6fa5','#7dd3fc','#f0abfc','#4ade80','#fbbf24','#94a3b8'
     ];
 
+    /* ─── Frames pixel art 16×18 ─────────────────────────── */
     const F = [
-      // frame 0: mans a baix, pantalla cyan/verd
       [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
-      // frame 1: mans exteses, pantalla desplaçada
       [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
-      // frame 2: pantalla rosa/vermella
       [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
-      // frame 3: pantalla verd
       [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
     ];
 
-    const canvas = document.getElementById('pc');
-    const ctx    = canvas.getContext('2d');
-    let fi = 0, tex = null;
-
-    function draw(f) {
+    /* ─── Dibuix canvas ──────────────────────────────────── */
+    function drawFrame(ctx, f) {
       const PS = 28, OX = 28, OY = 8;
       ctx.clearRect(0, 0, 512, 512);
       for (let r = 0; r < f.length; r++)
@@ -93,33 +70,46 @@
       ctx.fillText('ALBERT CANADES · AI Developer', 256, 491);
     }
 
-    draw(F[0]);
+    /* ─── Component: crea malla Three.js directament ─────── */
+    AFRAME.registerComponent('pixel-art-marker', {
+      init: function () {
+        // Canvas i textura Three.js
+        const cv  = document.createElement('canvas');
+        cv.width  = 512;
+        cv.height = 512;
+        const ctx = cv.getContext('2d');
+        const tex = new THREE.CanvasTexture(cv);
+        tex.minFilter = THREE.LinearFilter;
+        tex.magFilter = THREE.NearestFilter;
 
-    document.querySelector('a-scene').addEventListener('loaded', () => {
-      const img = document.querySelector('a-image');
+        // Malla Three.js plana sobre el marcador
+        const geo = new THREE.PlaneGeometry(1.8, 1.8);
+        const mat = new THREE.MeshBasicMaterial({
+          map: tex,
+          transparent: true,
+          alphaTest: 0.01,
+          side: THREE.DoubleSide,
+          depthWrite: false
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.rotation.x = -Math.PI / 2;  // horitzontal sobre el marcador
+        mesh.position.y = 0.01;
+        this.el.object3D.add(mesh);
 
-      // Obtenir la textura que A-Frame ha creat del canvas
-      const getTexture = () => {
-        const mesh = img.getObject3D('mesh');
-        if (!mesh || !mesh.material || !mesh.material.map) {
-          setTimeout(getTexture, 100);
-          return;
-        }
-        tex = mesh.material.map;
-        mesh.material.transparent = true;
-        mesh.material.alphaTest   = 0.01;
-        mesh.material.needsUpdate = true;
-      };
-      getTexture();
+        // Animació
+        let fi = 0;
+        drawFrame(ctx, F[0]);
+        tex.needsUpdate = true;
 
-      // Animació: redibuixar canvas i notificar Three.js
-      setInterval(() => {
-        fi = (fi + 1) % F.length;
-        draw(F[fi]);
-        if (tex) tex.needsUpdate = true;
-      }, 400);
+        setInterval(() => {
+          fi = (fi + 1) % F.length;
+          drawFrame(ctx, F[fi]);
+          tex.needsUpdate = true;
+        }, 400);
+      }
     });
 
+    /* ─── UI ─────────────────────────────────────────────── */
     const st = document.getElementById('status');
     document.getElementById('mk').addEventListener('markerFound', () => {
       st.textContent    = '▲ Albert Canades · AI Developer';
