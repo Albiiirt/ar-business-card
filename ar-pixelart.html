@@ -238,10 +238,98 @@
       }
     }
 
-    // ── Scene ─────────────────────────────────────────────────────────
+    // ── Step 3: Window (on left wall, x=0) ───────────────────────────
+    // For the x=0 wall: "w" runs along z axis, "d" runs into x axis.
+    // Frame: 3 wide (z) × 4 tall (y) × 0.3 deep (x), positioned at (0,2,3)
+    function drawWindow(ctx) {
+      const wx=0, wy=2, wz=3;
+      const ww=0.3, wh=4, wd=3;   // w=x-depth, h=y-height, d=z-span
+
+      // Frame
+      drawIsoBlock(ctx, wx, wy, wz, ww, wh, wd, '#8B5E3C', '#6B4423', '#5A3818');
+
+      // Glass pane (inset 0.1 on each side), semi-transparent
+      ctx.globalAlpha = 0.7;
+      drawIsoBlock(ctx, wx + 0.1, wy + 0.25, wz + 0.25,
+                   0.08, 3.5, 2.5, '#AED6F1', '#85C1E9', '#5DADE2');
+      ctx.globalAlpha = 1.0;
+    }
+
+    // ── Step 3: Bookshelf (against z=7 wall) ─────────────────────────
+    function drawBookshelf(ctx) {
+      const sx=6, sy=0, sz=7;
+
+      // Frame: 2w × 5h × 0.8d
+      drawIsoBlock(ctx, sx, sy, sz, 2, 5, 0.8, '#6B4423', '#4A2E14', '#3A2210');
+
+      // 3 shelf boards at y = 1.5, 3.0, 4.5
+      const [bT, bL, bR] = shades('#8B5E3C');
+      for (const by of [1.5, 3.0, 4.5]) {
+        drawIsoBlock(ctx, sx + 0.1, by, sz + 0.05, 1.8, 0.2, 0.7, bT, bL, bR);
+      }
+
+      // 5 books per shelf, 0.36 apart, colours cycling
+      const bookC = ['#8B2020','#20528B','#208B20','#8B7020','#6B208B'];
+      for (const by of [1.5, 3.0, 4.5]) {
+        for (let bi = 0; bi < 5; bi++) {
+          block(ctx, sx + 0.1 + bi * 0.36, by + 0.2, sz + 0.08,
+                0.3, 1.0, 0.6, bookC[bi % bookC.length]);
+        }
+      }
+    }
+
+    // ── Step 3: Desk (surface at y=2, legs y=0..2) ────────────────────
+    function drawDesk(ctx) {
+      const dx=2, dy=2, dz=3, dw=4, dh=0.4, dd=2;
+
+      // Legs sorted back-to-front (ascending x+z)
+      const legPts = [
+        [dx,        dz],          // x+z = 5
+        [dx,        dz+dd-0.4],   // x+z = 6.6
+        [dx+dw-0.4, dz],          // x+z = 8.6
+        [dx+dw-0.4, dz+dd-0.4],   // x+z = 10.2
+      ];
+      for (const [lx, lz] of legPts) {
+        block(ctx, lx, 0, lz, 0.4, 2, 0.4, '#5A3818');
+      }
+
+      // Drawer unit (right side under surface)
+      const drX = dx + dw - 1.5;
+      drawIsoBlock(ctx, drX, 0, dz + 0.1, 1.5, 2, 1.8,
+                   '#7A5230', '#5A3C20', '#4A3018');
+
+      // Drawer handle (centred on drawer front face)
+      drawIsoBlock(ctx,
+        drX + (1.5 - 0.3) / 2,
+        0.85,
+        dz + 0.06,
+        0.3, 0.2, 0.06,
+        '#C8A870', '#B09060', '#9A7850'
+      );
+
+      // Surface drawn last (sits on top of legs)
+      drawIsoBlock(ctx, dx, dy, dz, dw, dh, dd, '#8B5E3C', '#6B4423', '#5A3818');
+    }
+
+    // Warm radial light spill from window — drawn last, over everything
+    function drawWindowLight(ctx) {
+      const c = toScreen(0, wy=4, wz=4.5);
+      const r = BASE_PIXEL * 22;
+      const grd = ctx.createRadialGradient(c.x, c.y, BASE_PIXEL * 2, c.x, c.y, r);
+      grd.addColorStop(0, 'rgba(255,220,150,0.12)');
+      grd.addColorStop(1, 'rgba(255,220,150,0)');
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    // ── Scene — painter order: ascending (x+z) ────────────────────────
     function drawScene(ctx) {
       ctx.clearRect(0, 0, W, H);
-      drawRoom(ctx);
+      drawRoom(ctx);          // floor + walls        (x+z 0–16)
+      drawWindow(ctx);        // left wall, x+z ≈ 3
+      drawDesk(ctx);          // center room, x+z ≈ 5
+      drawBookshelf(ctx);     // near front, x+z ≈ 13
+      drawWindowLight(ctx);   // overlay warm glow last
     }
 
     // ── Render loop ───────────────────────────────────────────────────
