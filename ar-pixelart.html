@@ -322,14 +322,53 @@
       ctx.fillRect(0, 0, W, H);
     }
 
+    // ── Step 4: Chair ─────────────────────────────────────────────────
+    // Seat at (3,2,1.5), backrest at back edge, armrests on sides.
+    // Draw order within chair: ground→pole→seat→armrests→backrest
+    function drawChair(ctx) {
+      const sx=3, sy=2, sz=1.5, sw=1.8, sh=0.4, sd=1.8;
+
+      // 4 wheels – sorted ascending x+z (front/left first, back/right last)
+      const wC = ['#222222', '#1A1A1A', '#111111'];
+      for (const [wx, wz] of [
+        [3.775, 1.25],   // front  x+z ≈ 5.0
+        [2.75,  2.275],  // left   x+z ≈ 5.0
+        [4.8,   2.275],  // right  x+z ≈ 7.1
+        [3.775, 3.3],    // back   x+z ≈ 7.1
+      ]) {
+        drawIsoBlock(ctx, wx, 0, wz, 0.25, 0.25, 0.25, wC[0], wC[1], wC[2]);
+      }
+
+      // Base cross: horizontal bar + vertical bar (form a plus at y=0)
+      const bC = ['#333333', '#1A1A1A', '#111111'];
+      drawIsoBlock(ctx, 3.0,  0, 2.25, 1.8, 0.15, 0.3,  bC[0], bC[1], bC[2]);  // ─
+      drawIsoBlock(ctx, 3.75, 0, 1.5,  0.3, 0.15, 1.8,  bC[0], bC[1], bC[2]);  // │
+
+      // Center pole (pole_x = seat_cx - 0.15, pole_z = seat_cz - 0.15)
+      drawIsoBlock(ctx, 3.75, 0, 2.25, 0.3, 2, 0.3, '#444444', '#222222', '#1A1A1A');
+
+      // Seat cushion
+      drawIsoBlock(ctx, sx, sy, sz, sw, sh, sd, '#4A4A6A', '#35356A', '#252550');
+
+      // Left armrest (x = left edge of seat, z inset 0.2 from front, depth sd-0.4)
+      drawIsoBlock(ctx, sx,        sy+sh, sz+0.2, 0.2, 0.8, sd-0.4, '#35356A', '#252550', '#1A1A40');
+
+      // Backrest (same x as seat, at z = sz+sd-0.2 = 3.1 — spec: z+1.6)
+      drawIsoBlock(ctx, sx,        sy+sh, sz+sd-0.2, sw-0.2, 2, 0.2, '#4A4A6A', '#35356A', '#252550');
+
+      // Right armrest (x = right edge of seat, drawn last → renders on top in right region)
+      drawIsoBlock(ctx, sx+sw-0.2, sy+sh, sz+0.2, 0.2, 0.8, sd-0.4, '#35356A', '#252550', '#1A1A40');
+    }
+
     // ── Scene — painter order: ascending (x+z) ────────────────────────
     function drawScene(ctx) {
       ctx.clearRect(0, 0, W, H);
       drawRoom(ctx);          // floor + walls        (x+z 0–16)
-      drawWindow(ctx);        // left wall, x+z ≈ 3
-      drawDesk(ctx);          // center room, x+z ≈ 5
+      drawWindow(ctx);        // left wall,  x+z ≈  3
+      drawDesk(ctx);          // center room, x+z ≈  5–10
+      drawChair(ctx);         // in front of desk, x+z ≈ 5–7
       drawBookshelf(ctx);     // near front, x+z ≈ 13
-      drawWindowLight(ctx);   // overlay warm glow last
+      drawWindowLight(ctx);   // warm glow overlay (last)
     }
 
     // ── Render loop ───────────────────────────────────────────────────
