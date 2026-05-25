@@ -21,11 +21,11 @@
       z-index: 99999;
       pointer-events: none;
       white-space: nowrap;
+      transition: color .3s, border-color .3s;
     }
   </style>
 </head>
 <body>
-
   <div id="status">✦ Apunta la càmera al marcador Hiro</div>
 
   <a-scene
@@ -34,16 +34,21 @@
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
   >
+    <a-assets>
+      <canvas id="pc" width="512" height="512"></canvas>
+    </a-assets>
+
     <a-marker preset="hiro" id="mk">
-      <a-plane
-        id="pp"
+      <a-image
+        src="#pc"
         position="0 0.01 0"
         rotation="-90 0 0"
-        width="1.8" height="1.8"
-        material="color: #000000; shader: flat; transparent: true; opacity: 0;"
-        pixel-art
-      ></a-plane>
+        width="1.8"
+        height="1.8"
+        transparent="true"
+      ></a-image>
     </a-marker>
+
     <a-entity camera></a-entity>
   </a-scene>
 
@@ -56,77 +61,74 @@
     ];
 
     const F = [
+      // frame 0: mans a baix, pantalla cyan/verd
       [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,11,6,13,11,6,13,11,6,13,11,6,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
+      // frame 1: mans exteses, pantalla desplaçada
       [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,13,11,6,13,11,6,13,11,6,13,11,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
+      // frame 2: pantalla rosa/vermella
       [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,12,5,11,12,5,11,12,5,11,12,5,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,8,10,10,10,10,10,10,10,10,8,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]],
+      // frame 3: pantalla verd
       [[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,6,13,11,6,13,11,6,13,11,6,13,14,0,0],[0,14,14,14,14,14,14,14,14,14,14,14,14,14,0,0],[0,0,0,0,0,0,3,3,3,0,0,0,0,0,0,0],[0,0,0,0,0,0,9,8,8,9,0,0,0,0,0,0],[0,0,0,0,0,10,10,10,10,10,10,0,0,0,0,0],[0,0,0,0,8,10,10,10,10,10,10,8,0,0,0,0],[0,0,0,0,15,15,15,15,15,15,15,15,0,0,0,0],[0,0,2,2,2,2,2,2,2,2,2,2,2,2,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,0,4,0,0,0,0,4,0,0,0,0,0],[0,0,0,0,4,4,0,0,0,0,4,4,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]]
     ];
 
-    AFRAME.registerComponent('pixel-art', {
-      init: function () {
-        this.cv  = document.createElement('canvas');
-        this.cv.width = this.cv.height = 512;
-        this.ctx = this.cv.getContext('2d');
-        this.tex = new THREE.CanvasTexture(this.cv);
-        this.tex.minFilter = THREE.NearestFilter;
-        this.tex.magFilter = THREE.NearestFilter;
-        this.fi  = 0;
-        this.draw(F[0]);
+    const canvas = document.getElementById('pc');
+    const ctx    = canvas.getContext('2d');
+    let fi = 0, tex = null;
 
-        // Injectar textura quan el material ja existeixi
-        const inject = () => {
-          const mesh = this.el.getObject3D('mesh');
-          if (!mesh) { setTimeout(inject, 50); return; }
-          const mat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-          mat.map         = this.tex;
-          mat.color.set(0xffffff);
-          mat.transparent = true;
-          mat.opacity     = 1;
-          mat.alphaTest   = 0;
-          mat.needsUpdate = true;
-        };
+    function draw(f) {
+      const PS = 28, OX = 28, OY = 8;
+      ctx.clearRect(0, 0, 512, 512);
+      for (let r = 0; r < f.length; r++)
+        for (let c = 0; c < f[r].length; c++) {
+          const ci = f[r][c];
+          if (!ci) continue;
+          ctx.fillStyle = P[ci];
+          ctx.fillRect(OX + c*PS, OY + r*PS, PS-1, PS-1);
+        }
+      ctx.fillStyle = 'rgba(13,13,26,0.92)';
+      ctx.fillRect(20, 468, 472, 36);
+      ctx.fillStyle = '#08d9d6';
+      ctx.font = 'bold 17px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('ALBERT CANADES · AI Developer', 256, 491);
+    }
 
-        this.el.addEventListener('object3dset', inject);
-        this.el.sceneEl.addEventListener('loaded', inject);
-        setTimeout(inject, 300);
-        setTimeout(inject, 800);
+    draw(F[0]);
 
-        setInterval(() => {
-          this.fi = (this.fi + 1) % F.length;
-          this.draw(F[this.fi]);
-          this.tex.needsUpdate = true;
-        }, 400);
-      },
+    document.querySelector('a-scene').addEventListener('loaded', () => {
+      const img = document.querySelector('a-image');
 
-      draw: function (f) {
-        const ctx = this.ctx;
-        const PS  = 28, OX = 28, OY = 10;
-        ctx.clearRect(0, 0, 512, 512);
-        for (let r = 0; r < f.length; r++)
-          for (let c = 0; c < f[r].length; c++) {
-            const ci = f[r][c];
-            if (!ci) continue;
-            ctx.fillStyle = P[ci];
-            ctx.fillRect(OX + c*PS, OY + r*PS, PS-1, PS-1);
-          }
-        ctx.fillStyle = 'rgba(13,13,26,0.9)';
-        ctx.fillRect(20, 468, 472, 34);
-        ctx.fillStyle = '#08d9d6';
-        ctx.font = 'bold 18px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('ALBERT CANADES · AI Developer', 256, 491);
-      }
+      // Obtenir la textura que A-Frame ha creat del canvas
+      const getTexture = () => {
+        const mesh = img.getObject3D('mesh');
+        if (!mesh || !mesh.material || !mesh.material.map) {
+          setTimeout(getTexture, 100);
+          return;
+        }
+        tex = mesh.material.map;
+        mesh.material.transparent = true;
+        mesh.material.alphaTest   = 0.01;
+        mesh.material.needsUpdate = true;
+      };
+      getTexture();
+
+      // Animació: redibuixar canvas i notificar Three.js
+      setInterval(() => {
+        fi = (fi + 1) % F.length;
+        draw(F[fi]);
+        if (tex) tex.needsUpdate = true;
+      }, 400);
     });
 
     const st = document.getElementById('status');
     document.getElementById('mk').addEventListener('markerFound', () => {
-      st.textContent = '▲ Albert Canades · AI Developer';
-      st.style.color = '#4ade80';
+      st.textContent    = '▲ Albert Canades · AI Developer';
+      st.style.color    = '#4ade80';
       st.style.borderColor = '#4ade80';
     });
     document.getElementById('mk').addEventListener('markerLost', () => {
-      st.textContent = '✦ Apunta la càmera al marcador Hiro';
-      st.style.color = '#08d9d6';
+      st.textContent    = '✦ Apunta la càmera al marcador Hiro';
+      st.style.color    = '#08d9d6';
       st.style.borderColor = '#08d9d6';
     });
   </script>
