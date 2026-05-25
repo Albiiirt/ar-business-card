@@ -29,135 +29,111 @@
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false"
   >
-    <a-marker preset="hiro" id="mk" voxel-room></a-marker>
+    <a-marker preset="hiro" id="mk"></a-marker>
     <a-entity camera></a-entity>
   </a-scene>
 
   <script>
-  /* Afegim les llums a l'escena global ABANS de registrar el component */
-  document.querySelector('a-scene').addEventListener('loaded', function () {
-    const s = this.object3D;
-    const amb = new THREE.AmbientLight(0xffffff, 0.7);
-    s.add(amb);
-    const sun = new THREE.DirectionalLight(0xffeedd, 1.1);
-    sun.position.set(4, 8, 5);
-    s.add(sun);
-    const fill = new THREE.DirectionalLight(0x4488cc, 0.4);
-    fill.position.set(-4, 3, -3);
-    s.add(fill);
-  });
+  const U = 0.13; // mida vòxel
 
-  AFRAME.registerComponent('voxel-room', {
-    init: function () {
-      const root = new THREE.Group();
-      const U = 0.14; // mida d'un vòxel (en unitats AR = amplada del marcador)
+  /* Afegeix un a-box fill del marcador */
+  function box(cx, cy, cz, w, h, d, color) {
+    const el = document.createElement('a-box');
+    el.setAttribute('position', `${cx*U} ${cy*U} ${cz*U}`);
+    el.setAttribute('width',    w * U);
+    el.setAttribute('height',   h * U);
+    el.setAttribute('depth',    d * U);
+    el.setAttribute('color', color);
+    el.setAttribute('shader', 'flat');
+    el.setAttribute('roughness', '0');
+    document.getElementById('mk').appendChild(el);
+    return el;
+  }
 
-      /* ── Material cache ─────────────────────────────── */
-      const MC = {};
-      function m(hex) {
-        if (!MC[hex]) MC[hex] = new THREE.MeshLambertMaterial({ color: hex });
-        return MC[hex];
-      }
-
-      /* ── Cub helper ─────────────────────────────────── */
-      function b(cx, cy, cz, w, h, d, hex) {
-        const mesh = new THREE.Mesh(
-          new THREE.BoxGeometry(w * U, h * U, d * U),
-          m(hex)
-        );
-        mesh.position.set(cx * U, cy * U, cz * U);
-        root.add(mesh);
-        return mesh;
-      }
-
-      /* ── TERRA (9×9 taulells) ───────────────────────── */
-      for (let x = 0; x < 9; x++)
-        for (let z = 0; z < 9; z++)
-          b(x - 4, 0, z - 4, 0.95, 0.22, 0.95,
-            (x + z) % 2 === 0 ? 0x1a1035 : 0x14092c);
-
-      /* ── PARET DEL FONS (z = -4.5) ──────────────────── */
-      for (let x = 0; x < 9; x++)
-        for (let y = 1; y <= 7; y++)
-          b(x - 4, y, -4.5, 0.95, 0.95, 0.22,
-            y <= 2 ? 0x2a1f1a : 0x1a3a5e);
-
-      /* ── PARET ESQUERRA (x = -4.5) ──────────────────── */
+  function buildScene() {
+    /* ── TERRA ─────────────────────────────────── */
+    for (let x = 0; x < 9; x++)
       for (let z = 0; z < 9; z++)
-        for (let y = 1; y <= 7; y++)
-          b(-4.5, y, z - 4, 0.22, 0.95, 0.95,
-            y <= 2 ? 0x221a16 : 0x143050);
+        box(x-4, 0, z-4, 0.94, 0.2, 0.94,
+          (x+z)%2===0 ? '#1a1035' : '#14092c');
 
-      /* ── ESCRIPTORI en L ────────────────────────────── */
-      for (let x = -4; x <= -1; x++) b(x, 3.4, -3.5, 0.95, 0.28, 0.95, 0x8B5E3C);
-      for (let z = -3; z <= -1; z++) b(-3.5, 3.4, z,  0.95, 0.28, 0.95, 0x7a5130);
-      // Potes
-      b(-4, 1.7, -3.5, 0.35, 2.8, 0.35, 0x6B4423);
-      b(-1, 1.7, -3.5, 0.35, 2.8, 0.35, 0x6B4423);
-      b(-4, 1.7, -1,   0.35, 2.8, 0.35, 0x6B4423);
+    /* ── PARET FONS (z negativa) ─────────────── */
+    for (let x = 0; x < 9; x++)
+      for (let y = 1; y <= 7; y++)
+        box(x-4, y, -4.5, 0.94, 0.94, 0.2,
+          y<=2 ? '#2a1f1a' : '#1a3a5e');
 
-      /* ── MONITORS (doble) ───────────────────────────── */
-      b(-2.5, 3.8, -4.1, 0.4, 0.5, 0.4, 0x111122);         // peu
-      b(-3.5, 5.2, -4.2, 2.2, 1.6, 0.18, 0x0d0d1e);        // marc L
-      this.scL = b(-3.5, 5.2, -4.12, 1.9, 1.3, 0.1, 0x08d9d6); // pant L
-      b(-1.0, 5.2, -4.2, 2.2, 1.6, 0.18, 0x0d0d1e);        // marc R
-      this.scR = b(-1.0, 5.2, -4.12, 1.9, 1.3, 0.1, 0x4ade80); // pant R
+    /* ── PARET ESQUERRA (x negativa) ────────── */
+    for (let z = 0; z < 9; z++)
+      for (let y = 1; y <= 7; y++)
+        box(-4.5, y, z-4, 0.2, 0.94, 0.94,
+          y<=2 ? '#221a16' : '#143050');
 
-      /* ── TECLAT ─────────────────────────────────────── */
-      b(-2.5, 3.52, -3.2, 3.0, 0.18, 0.85, 0x334155);
-      for (let k = 0; k < 5; k++)
-        b(-3.5 + k * 0.6, 3.62, -3.2, 0.45, 0.12, 0.6, 0x475569);
+    /* ── ESCRIPTORI en L ─────────────────────── */
+    for (let x = -4; x <= -1; x++) box(x, 3.4, -3.5, 0.94, 0.28, 0.94, '#8B5E3C');
+    for (let z = -3; z <= -1; z++) box(-3.5, 3.4, z,  0.94, 0.28, 0.94, '#7a5130');
+    box(-4, 1.7, -3.5, 0.35, 2.8, 0.35, '#6B4423');
+    box(-1, 1.7, -3.5, 0.35, 2.8, 0.35, '#6B4423');
+    box(-4, 1.7, -1,   0.35, 2.8, 0.35, '#6B4423');
 
-      /* ── CADIRA ─────────────────────────────────────── */
-      b(-2.5, 2.4, -1.5, 2.5, 0.28, 2.5, 0x533483);
-      b(-2.5, 3.7, -0.5, 2.5, 2.5, 0.28, 0x3b2272);
-      b(-3.5, 1.2, -2.5, 0.3, 2.2, 0.3, 0x2d1b4e);
-      b(-1.5, 1.2, -2.5, 0.3, 2.2, 0.3, 0x2d1b4e);
-      b(-3.5, 1.2, -0.5, 0.3, 2.2, 0.3, 0x2d1b4e);
-      b(-1.5, 1.2, -0.5, 0.3, 2.2, 0.3, 0x2d1b4e);
+    /* ── MONITORS ────────────────────────────── */
+    box(-2.5, 3.8, -4.1, 0.4, 0.5, 0.4, '#111122');
+    box(-3.5, 5.2, -4.2, 2.2, 1.6, 0.18, '#0d0d1e');
+    const scL = box(-3.5, 5.2, -4.12, 1.9, 1.3, 0.1, '#08d9d6');
+    box(-1.0, 5.2, -4.2, 2.2, 1.6, 0.18, '#0d0d1e');
+    const scR = box(-1.0, 5.2, -4.12, 1.9, 1.3, 0.1, '#4ade80');
 
-      /* ── PERSONATGE ─────────────────────────────────── */
-      b(-3.0, 1.4, -2.0, 0.8, 2.0, 0.8, 0x2d3748); // cama E
-      b(-2.0, 1.4, -2.0, 0.8, 2.0, 0.8, 0x2d3748); // cama D
-      b(-2.5, 3.2, -2.5, 2.0, 1.8, 1.4, 0x4a6fa5); // cos
-      b(-2.5, 4.4, -2.6, 0.6, 0.4, 0.6, 0xf5c5a3); // coll
-      b(-2.5, 5.1, -2.6, 1.4, 1.4, 1.3, 0xf5c5a3); // cap
-      b(-2.5, 5.8, -2.5, 1.5, 0.5, 1.4, 0x1a0a2e); // cabell
-      b(-3.8, 3.0, -3.0, 0.8, 0.7, 1.2, 0x4a6fa5); // braç E
-      b(-3.8, 2.9, -3.6, 0.7, 0.5, 0.6, 0xf5c5a3); // mà E
-      b(-1.2, 3.0, -3.0, 0.8, 0.7, 1.2, 0x4a6fa5); // braç D
-      b(-1.2, 2.9, -3.6, 0.7, 0.5, 0.6, 0xf5c5a3); // mà D
+    /* ── TECLAT ──────────────────────────────── */
+    box(-2.5, 3.52, -3.2, 3.0, 0.18, 0.85, '#334155');
 
-      /* ── PRESTATGE (paret dreta) ────────────────────── */
-      b(2.0, 5.0, -3.5, 3.0, 0.22, 0.7, 0x8B5E3C);
-      b(1.0, 5.5, -3.6, 0.5, 1.0, 0.5, 0x7dd3fc);
-      b(1.8, 5.5, -3.6, 0.5, 0.8, 0.5, 0xe94560);
-      b(2.5, 5.5, -3.6, 0.5, 1.1, 0.5, 0x4ade80);
+    /* ── CADIRA ──────────────────────────────── */
+    box(-2.5, 2.4, -1.5, 2.5, 0.28, 2.5, '#533483');
+    box(-2.5, 3.7, -0.5, 2.5, 2.5, 0.28, '#3b2272');
+    box(-3.5, 1.2, -2.5, 0.3, 2.2, 0.3, '#2d1b4e');
+    box(-1.5, 1.2, -2.5, 0.3, 2.2, 0.3, '#2d1b4e');
+    box(-3.5, 1.2, -0.5, 0.3, 2.2, 0.3, '#2d1b4e');
+    box(-1.5, 1.2, -0.5, 0.3, 2.2, 0.3, '#2d1b4e');
 
-      /* ── PLANTA (cantonada) ──────────────────────────── */
-      b(3.5, 0.5, 3.5, 0.9, 1.1, 0.9, 0xffffff);
-      b(3.5, 1.5, 3.5, 1.0, 1.2, 1.0, 0x16a34a);
-      b(3.5, 2.5, 3.5, 0.7, 0.7, 0.7, 0x22c55e);
+    /* ── PERSONATGE ──────────────────────────── */
+    box(-3.0, 1.4, -2.0, 0.8, 2.0, 0.8, '#2d3748');
+    box(-2.0, 1.4, -2.0, 0.8, 2.0, 0.8, '#2d3748');
+    box(-2.5, 3.2, -2.5, 2.0, 1.8, 1.4, '#4a6fa5');
+    box(-2.5, 4.4, -2.6, 0.6, 0.4, 0.6, '#f5c5a3');
+    box(-2.5, 5.1, -2.6, 1.4, 1.4, 1.3, '#f5c5a3');
+    box(-2.5, 5.8, -2.5, 1.5, 0.5, 1.4, '#1a0a2e');
+    box(-3.8, 3.0, -3.0, 0.8, 0.7, 1.2, '#4a6fa5');
+    box(-3.8, 2.9, -3.6, 0.7, 0.5, 0.6, '#f5c5a3');
+    box(-1.2, 3.0, -3.0, 0.8, 0.7, 1.2, '#4a6fa5');
+    box(-1.2, 2.9, -3.6, 0.7, 0.5, 0.6, '#f5c5a3');
 
-      /* ── TASSA CAFÈ ──────────────────────────────────── */
-      b(-0.5, 3.7, -3.6, 0.55, 0.8, 0.55, 0xe94560);
+    /* ── PRESTATGE ───────────────────────────── */
+    box(2.0, 5.0, -3.5, 3.0, 0.22, 0.7, '#8B5E3C');
+    box(1.0, 5.5, -3.6, 0.5, 1.0, 0.5, '#7dd3fc');
+    box(1.8, 5.5, -3.6, 0.5, 0.8, 0.5, '#e94560');
+    box(2.5, 5.5, -3.6, 0.5, 1.1, 0.5, '#4ade80');
 
-      /* ── Afegir a l'escena ───────────────────────────── */
-      root.position.set(0, 0.05, 0);
-      this.el.object3D.add(root);
+    /* ── PLANTA ──────────────────────────────── */
+    box(3.5, 0.5, 3.5, 0.9, 1.1, 0.9, '#ffffff');
+    box(3.5, 1.5, 3.5, 1.0, 1.2, 1.0, '#16a34a');
+    box(3.5, 2.5, 3.5, 0.7, 0.7, 0.7, '#22c55e');
 
-      /* ── Animació pantalles ──────────────────────────── */
-      const cols = [0x08d9d6, 0x4ade80, 0x7dd3fc, 0xf0abfc, 0xfbbf24];
-      let ci = 0;
-      setInterval(() => {
-        ci = (ci + 1) % cols.length;
-        if (this.scL) this.scL.material.color.setHex(cols[ci]);
-        if (this.scR) this.scR.material.color.setHex(cols[(ci + 2) % cols.length]);
-      }, 500);
-    }
-  });
+    /* ── TASSA ───────────────────────────────── */
+    box(-0.5, 3.7, -3.6, 0.55, 0.8, 0.55, '#e94560');
 
-  /* ── UI ─────────────────────────────────────────────── */
+    /* ── Animació pantalles ──────────────────── */
+    const cols = ['#08d9d6','#4ade80','#7dd3fc','#f0abfc','#fbbf24'];
+    let ci = 0;
+    setInterval(() => {
+      ci = (ci+1) % cols.length;
+      scL.setAttribute('color', cols[ci]);
+      scR.setAttribute('color', cols[(ci+2) % cols.length]);
+    }, 500);
+  }
+
+  /* Construir quan l'escena estigui llesta */
+  document.querySelector('a-scene').addEventListener('loaded', buildScene);
+
+  /* ── UI ──────────────────────────────────────────────── */
   const st = document.getElementById('status');
   document.getElementById('mk').addEventListener('markerFound', () => {
     st.textContent       = '▲ Albert Canades · AI Developer';
@@ -170,9 +146,9 @@
     st.style.borderColor = '#08d9d6';
   });
 
-  window.onerror = (msg, src, line) => {
-    document.getElementById('status').textContent = 'ERR: ' + msg.substring(0, 60);
-    document.getElementById('status').style.color = '#e94560';
+  window.onerror = (msg) => {
+    st.textContent = 'ERR: ' + msg.substring(0, 55);
+    st.style.color = '#e94560';
   };
   </script>
 </body>
