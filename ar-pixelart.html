@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>AR Pixel Art — Albert Canades</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #111; overflow: hidden; touch-action: none; }
+
+    #cam-canvas { position: absolute; top: 0; left: 0; }
+    #art-canvas { position: absolute; top: 0; left: 0; }
+
+    #hint {
+      position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.72); color: #08d9d6;
+      font: bold 12px 'Courier New', monospace;
+      padding: 8px 18px; border-radius: 16px; border: 1px solid #08d9d6;
+      pointer-events: none; white-space: nowrap; z-index: 10;
+    }
+
+    #controls {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      padding: 10px 16px; background: rgba(0,0,0,0.65);
+      display: flex; align-items: center; gap: 12px;
+      z-index: 10; font: 12px 'Courier New', monospace; color: #ccc;
+    }
+    #controls label { white-space: nowrap; }
+    #pixel-slider { flex: 1; accent-color: #08d9d6; cursor: pointer; }
+    #cam-toggle {
+      background: #08d9d6; color: #000; border: none;
+      padding: 6px 12px; border-radius: 4px;
+      font: bold 11px 'Courier New', monospace;
+      cursor: pointer; white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="cam-canvas"></canvas>
+  <canvas id="art-canvas"></canvas>
+
+  <div id="hint">Tap to reposition · drag slider to scale</div>
+
+  <div id="controls">
+    <label>Pixel: <strong id="px-val">6</strong></label>
+    <input id="pixel-slider" type="range" min="2" max="14" value="6">
+    <button id="cam-toggle">Hide cam</button>
+  </div>
+
+  <script>
+    // ── Canvas & resize ───────────────────────────────────────────────
+    const camCanvas = document.getElementById('cam-canvas');
+    const artCanvas = document.getElementById('art-canvas');
+    const camCtx    = camCanvas.getContext('2d');
+    const artCtx    = artCanvas.getContext('2d');
+
+    let W = 0, H = 0;
+
+    function resize() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      camCanvas.width = artCanvas.width = W;
+      camCanvas.height = artCanvas.height = H;
+    }
+    resize();
+    window.addEventListener('resize', () => { resize(); resetOrigin(); });
+
+    // ── Scene state ───────────────────────────────────────────────────
+    let BASE_PIXEL = 6;
+    let originX = 0, originY = 0;
+    let showCamera = true;
+
+    function resetOrigin() {
+      originX = W * 0.5;
+      originY = H * 0.42;
+    }
+    resetOrigin();
+
+    // ── Camera feed ───────────────────────────────────────────────────
+    const video = document.createElement('video');
+    video.autoplay = true;
+    video.playsInline = true;
+    video.muted = true;
+
+    navigator.mediaDevices
+      .getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
+      .then(stream => { video.srcObject = stream; video.play(); })
+      .catch(() => { showCamera = false; camCanvas.style.display = 'none'; });
+
+    function drawCamera() {
+      if (!showCamera || video.readyState < 2) return;
+      const vw = video.videoWidth, vh = video.videoHeight;
+      if (!vw) return;
+      const scale = Math.max(W / vw, H / vh);
+      const dw = vw * scale, dh = vh * scale;
+      camCtx.drawImage(video, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    }
+
+    // ── Isometric math ────────────────────────────────────────────────
+    // World axes: +x → screen right-down, +z → screen left-down, +y → screen up
+    // toScreen maps world (wx,wy,wz) → canvas pixel (x,y)
+    function toScreen(wx, wy, wz) {
+      const TW = BASE_PIXEL * 4;   // screen pixels per world unit (horizontal)
+      const TH = BASE_PIXEL * 2;   // screen pixels per world unit (vertical tile)
+      const VH = BASE_PIXEL * 2;   // screen pixels per world unit (height)
+      return {
+        x: originX + (wx - wz) * TW / 2,
+        y: originY + (wx + wz) * TH / 2 - wy * VH
+      };
+    }
+
+    function fillPoly(ctx, pts, color) {
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+
+    /**
+     * drawIsoBlock(ctx, x, y, z, w, h, d, colorTop, colorLeft, colorRight)
+     *
+     *   x,y,z        – bottom-front-left corner in world units
+     *   w,h,d        – size in x (width), y (height), z (depth)
+     *   colorTop     – top face   (brightest)
+     *   colorLeft    – left face  (−Z face, mid brightness)
+     *   colorRight   – right face (+X face, darkest)
+     *
+     * Projection:
+     *   screenX = originX + (x − z) × TW/2
+     *   screenY = originY + (x + z) × TH/2 − y × VH
+     *
+     * Visible faces from isometric camera (above + NE):
+     *   Top   → rhombus at y+h
+     *   Left  → −Z parallelogram (front face, left on screen)
+     *   Right → +X parallelogram (side face, right on screen)
+     */
+    function drawIsoBlock(ctx, x, y, z, w, h, d, cTop, cLeft, cRight) {
+      const VH = BASE_PIXEL * 2;
+
+      // Top-face corners (all at world-y = y+h)
+      const tfl = toScreen(x,     y + h, z);      // front-left
+      const tfr = toScreen(x + w, y + h, z);      // front-right
+      const tbr = toScreen(x + w, y + h, z + d);  // back-right
+      const tbl = toScreen(x,     y + h, z + d);  // back-left
+
+      const drop = h * VH;  // pixel offset to bottom row
+
+      // Top face
+      fillPoly(ctx, [tfl, tfr, tbr, tbl], cTop);
+
+      // Left face (−Z, front-left parallelogram)
+      fillPoly(ctx, [
+        tfl, tfr,
+        { x: tfr.x, y: tfr.y + drop },
+        { x: tfl.x, y: tfl.y + drop }
+      ], cLeft);
+
+      // Right face (+X, front-right parallelogram)
+      fillPoly(ctx, [
+        tfr, tbr,
+        { x: tbr.x, y: tbr.y + drop },
+        { x: tfr.x, y: tfr.y + drop }
+      ], cRight);
+    }
+
+    // Auto-shade a hex color: returns [top, left, right] variants
+    function shades(hex) {
+      const r = parseInt(hex.slice(1, 3), 16);
+      const g = parseInt(hex.slice(3, 5), 16);
+      const b = parseInt(hex.slice(5, 7), 16);
+      const mk = (f) => `rgb(${Math.round(r*f)},${Math.round(g*f)},${Math.round(b*f)})`;
+      return [mk(1.0), mk(0.75), mk(0.55)];
+    }
+
+    // Shorthand: single base color, faces auto-shaded
+    function block(ctx, x, y, z, w, h, d, hex) {
+      const [cT, cL, cR] = shades(hex);
+      drawIsoBlock(ctx, x, y, z, w, h, d, cT, cL, cR);
+    }
+
+    // ── Scene (placeholder — scene objects added in Step 2) ───────────
+    function drawScene(ctx) {
+      ctx.clearRect(0, 0, W, H);
+
+      // Test cube: single orange block to verify drawIsoBlock works
+      block(ctx, 0, 0, 0, 1, 1, 1, '#D4845A');
+    }
+
+    // ── Render loop ───────────────────────────────────────────────────
+    function loop() {
+      if (showCamera) {
+        camCtx.clearRect(0, 0, W, H);
+        drawCamera();
+      }
+      drawScene(artCtx);
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    // ── Controls ──────────────────────────────────────────────────────
+    // Tap/click to reposition scene origin
+    artCanvas.addEventListener('pointerdown', e => {
+      originX = e.clientX;
+      originY = e.clientY;
+    });
+
+    // BASE_PIXEL slider
+    const slider  = document.getElementById('pixel-slider');
+    const pxLabel = document.getElementById('px-val');
+    slider.addEventListener('input', () => {
+      BASE_PIXEL = +slider.value;
+      pxLabel.textContent = BASE_PIXEL;
+    });
+
+    // Toggle camera visibility
+    const camBtn = document.getElementById('cam-toggle');
+    camBtn.addEventListener('click', () => {
+      showCamera = !showCamera;
+      camCanvas.style.display = showCamera ? '' : 'none';
+      camBtn.textContent = showCamera ? 'Hide cam' : 'Show cam';
+    });
+  </script>
+</body>
+</html>
